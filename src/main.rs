@@ -1,4 +1,4 @@
-use bevy_template::run;
+use ggj_2k33::run;
 
 fn main() {
     // X, Y resolution
