@@ -5,73 +5,80 @@ use bevy::{
 };
 
 #[derive(Component)]
-struct Alive {
-    pv: f32,
+pub struct Alive {
+    pub pv: f32,
 }
 
 #[derive(Component)]
-struct Move {
-    speed: f32,
-    direction: Vec2,
+pub struct Move {
+    pub speed: f32,
+    pub direction: Vec2,
 }
 
 #[derive(Component)]
-struct Decay {
-    amount: f32,
+pub struct Decay {
+    pub amount: f32,
 }
 
 #[derive(Component)]
-struct HitCount {
-    ttl: u32,
+pub struct HitCount {
+    pub ttl: u32,
 }
 #[derive(Component)]
-struct Harm {
-    damage: f32,
+pub struct Harm {
+    pub damage: f32,
 }
 
 #[derive(Component)]
-struct Collider;
+pub struct Collider;
 
 #[derive(Component)]
-struct Player;
+pub struct Player;
 
 #[derive(Component)]
-struct Enemy;
+pub struct Enemy;
 
 #[derive(Component)]
-struct Bullet;
+pub struct Bullet;
 
 #[derive(Component)]
-struct Weapon {
-    fire_rate: f32,
-    bullet_ttl: u32,
-    bullets: u32,
+pub struct Orientated {
+    pub direction: Vec2,
 }
 
-#[derive(Bundle)]
-struct CharacterBundle {
-    move_compoment: Move,
-    harm: Harm,
-    alive: Alive,
-    sprite_bundle: SpriteBundle,
-    collider: Collider,
-    transform: Transform,
+#[derive(Component)]
+pub struct Weapon {
+    pub fire_rate: f32,
+    pub bullet_ttl: u32,
+    pub bullets: u32,
+    pub is_firing: bool,
 }
 
 #[derive(Bundle)]
-struct PlayerBundle {
-    player: Player,
-    character: CharacterBundle,
-    weapon: Weapon,
+pub struct CharacterBundle {
+    pub move_component: Move,
+    pub harm: Harm,
+    pub alive: Alive,
+    pub sprite_bundle: SpriteBundle,
+    pub collider: Collider,
+    pub transform: Transform,
+    pub orientated: Orientated,
 }
 
 #[derive(Bundle)]
-struct EnemyBundle {
-    enemy: Enemy,
-    character: CharacterBundle,
+pub struct PlayerBundle {
+    pub player: Player,
+    pub character: CharacterBundle,
+    pub weapon: Weapon,
 }
 
 #[derive(Bundle)]
-struct BulletBundle {
-    character: CharacterBundle,
+pub struct EnemyBundle {
+    pub enemy: Enemy,
+    pub character: CharacterBundle,
+}
+
+#[derive(Bundle)]
+pub struct BulletBundle {
+    pub character: CharacterBundle,
 }
