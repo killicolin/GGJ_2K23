@@ -1,3 +1,6 @@
+mod components;
+mod systems;
+
 use bevy::{
     prelude::{default, App, PluginGroup},
     window::{PresentMode, WindowDescriptor, WindowPlugin},
