@@ -844,14 +844,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ggj_2k33"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "bevy_editor_pls",
-]
-
-[[package]]
 name = "bevy_text"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1687,6 +1679,14 @@ dependencies = [
  "libc",
  "wasi",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "ggj_2k33"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_editor_pls",
 ]
 
 [[package]]
