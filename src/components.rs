@@ -1,12 +1,12 @@
 use bevy::{
     ecs::component::Component,
-    prelude::{Bundle, Transform, Vec2},
+    prelude::{Bundle, Vec2},
     sprite::SpriteBundle,
 };
 
 #[derive(Component)]
 pub struct Alive {
-    pub pv: f32,
+    pub health: f32,
 }
 
 #[derive(Component)]
@@ -61,7 +61,6 @@ pub struct CharacterBundle {
     pub alive: Alive,
     pub sprite_bundle: SpriteBundle,
     pub collider: Collider,
-    pub transform: Transform,
     pub orientated: Orientated,
 }
 
