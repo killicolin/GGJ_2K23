@@ -1,0 +1,21 @@
+[package]
+name = "bevy_template"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+# Enable a small amount of optimization in debug mode
+[profile.dev]
+opt-level = 1
+
+# Enable high optimizations for dependencies (incl. Bevy), but not for our code:
+[profile.dev.package."*"]
+opt-level = 3
+
+[dependencies]
+bevy ="0.9.1"
+bevy_editor_pls = "0.2"
+
+[target.wasm32-unknown-unknown]
+runner = "wasm-server-runner"
