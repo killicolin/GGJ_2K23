@@ -22,7 +22,7 @@ use systems::{
         decay, despawn_health, despawn_ttl, enemy_direction_update, enemy_hitting_update,
         firing_bullet_emit, key_input_update, manage_mob_spawner_timer, mob_spawner,
         mouse_button_input_update, player_aim_update, setup_in_game, transform_update,
-        wave_is_done_emit, MobSpawnEvent, SpawnBulletEvent, WaveDoneEvent,
+        wave_is_done_emit, GameOverEvent, MobSpawnEvent, SpawnBulletEvent, WaveDoneEvent,
     },
     level_menu::{clean_level_menu, heredity_button, setup_level_menu},
     main_menu::{clean_main_menu, setup_main_menu, start_button},
@@ -80,10 +80,11 @@ pub fn run(width: f32, height: f32) {
     .insert_resource(TotalKilled::default())
     .add_event::<SpawnBulletEvent>()
     .add_event::<MobSpawnEvent>()
+    .add_event::<GameOverEvent>()
+    .add_event::<WaveDoneEvent>()
     // To change to AppState::MainMenu when loop is finished
     .add_state(AppState::MainMenu)
     .init_resource::<StatsRes>()
-    .add_event::<WaveDoneEvent>()
     .add_system_set(SystemSet::on_enter(AppState::MainMenu).with_system(setup_main_menu))
     .add_system_set(SystemSet::on_update(AppState::MainMenu).with_system(start_button))
     .add_system_set(SystemSet::on_exit(AppState::MainMenu).with_system(clean_main_menu))

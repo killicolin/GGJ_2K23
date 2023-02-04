@@ -30,6 +30,8 @@ pub struct SpawnBulletEvent;
 
 pub struct WaveDoneEvent;
 
+pub struct GameOverEvent;
+
 #[derive(Default)]
 pub struct MobSpawnEvent;
 
@@ -333,15 +335,20 @@ pub fn mob_spawner(
 
 pub fn despawn_health(
     mut commands: Commands,
-    mut query: Query<(Entity, &Alive, Option<&Enemy>)>,
+    mut query: Query<(Entity, &Alive, Option<&Enemy>, Option<&Player>)>,
     mut total_killed: ResMut<TotalKilled>,
+    mut game_over_event_emitter: EventWriter<GameOverEvent>,
 ) {
-    for (entity, alive, maybe_enemy) in query.iter_mut() {
+    for (entity, alive, maybe_enemy, maybe_player) in query.iter_mut() {
         if alive.health <= 0.0 {
             if maybe_enemy.is_some() {
                 total_killed.amount += 1;
             }
-            commands.entity(entity).despawn();
+            if maybe_player.is_some() {
+                game_over_event_emitter.send(GameOverEvent);
+            } else {
+                commands.entity(entity).despawn();
+            }
         }
     }
 }
