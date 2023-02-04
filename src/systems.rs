@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
         Camera2dBundle, Color, Commands, EventReader, EventWriter, Input, KeyCode, MouseButton,
-        Query, Res, Transform, Vec2, Vec3, With,
+        OrthographicProjection, Query, Res, Transform, Vec2, Vec3, With,
     },
     sprite::{Sprite, SpriteBundle},
     time::{Time, Timer, TimerMode},
@@ -129,6 +129,18 @@ pub fn mouse_button_input_update(
         weapon.is_firing = false;
         timer.pause();
     }
+}
+
+pub fn enemy_direction_update(
+    mut query: Query<(&mut Move, &Transform), With<Enemy>>,
+    query_player: Query<&Transform, With<Player>>,
+) {
+    let player_tranform = query_player.single();
+    query.for_each_mut(|(mut movable, transform)| {
+        movable.direction = (player_tranform.translation - transform.translation)
+            .truncate()
+            .normalize_or_zero();
+    });
 }
 
 pub fn key_input_update(

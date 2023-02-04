@@ -9,9 +9,9 @@ use bevy::{
 use bevy_editor_pls::EditorPlugin;
 use components::{Aim, Alive, Decay, HitCount, Move, Weapon};
 use systems::{
-    bullet_spawner, firing_bullet_emit, key_input_update, manage_mob_spawner_timer, mob_spawner,
-    mouse_button_input_update, player_aim_update, setup, transform_update, MobSpawnEvent,
-    SpawnBulletEvent,
+    bullet_spawner, enemy_direction_update, firing_bullet_emit, key_input_update,
+    manage_mob_spawner_timer, mob_spawner, mouse_button_input_update, player_aim_update, setup,
+    transform_update, MobSpawnEvent, SpawnBulletEvent,
 };
 
 pub fn run(width: f32, height: f32) {
@@ -36,7 +36,8 @@ pub fn run(width: f32, height: f32) {
     .add_system(firing_bullet_emit)
     .add_system(bullet_spawner)
     .add_system(manage_mob_spawner_timer)
-    .add_system(mob_spawner);
+    .add_system(mob_spawner)
+    .add_system(enemy_direction_update);
 
     app.register_type::<Alive>();
     app.register_type::<Move>();
