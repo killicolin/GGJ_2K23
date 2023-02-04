@@ -1,7 +1,8 @@
 use bevy::{
     prelude::{
         AssetServer, Camera2dBundle, Commands, Entity, EventReader, EventWriter, Input, KeyCode,
-        MouseButton, OrthographicProjection, Query, Res, Transform, Vec2, Vec3, With, Without,
+        MouseButton, OrthographicProjection, Query, Res, ResMut, Transform, Vec2, Vec3, With,
+        Without,
     },
     sprite::{collide_aabb::collide, Sprite, SpriteBundle},
     time::{Time, Timer, TimerMode},
@@ -21,10 +22,13 @@ use crate::{
         MOB_COLOR, MOB_DAMAGE, MOB_HEALTH, MOB_SCALE, MOB_SPAWN_RADIUS, MOB_SPEED, PLAYER_AIM,
         PLAYER_DIRECTION, PLAYER_FIRE_RATE, PLAYER_POSITION, PLAYER_SCALE,
     },
+    resource::{TotalKilled, TotalSpawned, TotalToSpawn},
     StatsRes,
 };
 
 pub struct SpawnBulletEvent;
+
+pub struct WaveDoneEvent;
 
 #[derive(Default)]
 pub struct MobSpawnEvent;
@@ -266,8 +270,10 @@ pub fn mob_spawner(
     query: Query<&Transform, With<Player>>,
     mob_spawn_event: EventReader<MobSpawnEvent>,
     asset_server: Res<AssetServer>,
+    to_spawn: Res<TotalToSpawn>,
+    mut spawned: ResMut<TotalSpawned>,
 ) {
-    if mob_spawn_event.is_empty() {
+    if mob_spawn_event.is_empty() || to_spawn.amount > spawned.amount {
         return;
     }
     mob_spawn_event.clear();
@@ -313,13 +319,31 @@ pub fn mob_spawner(
         },
         enemy: Enemy,
     });
+    spawned.amount += 1;
 }
 
-pub fn despawn_health(mut commands: Commands, mut query: Query<(Entity, &Alive)>) {
-    for (entity, alive) in query.iter_mut() {
+pub fn despawn_health(
+    mut commands: Commands,
+    mut query: Query<(Entity, &Alive, Option<&Enemy>)>,
+    mut total_killed: ResMut<TotalKilled>,
+) {
+    for (entity, alive, maybe_enemy) in query.iter_mut() {
+        if maybe_enemy.is_some() {
+            total_killed.amount += 1;
+        }
         if alive.health <= 0.0 {
             commands.entity(entity).despawn();
         }
+    }
+}
+
+pub fn wave_is_done_emit(
+    mut wave_done_event: EventWriter<WaveDoneEvent>,
+    total_killed: Res<TotalKilled>,
+    total_to_spawn: Res<TotalToSpawn>,
+) {
+    if total_killed.amount >= total_to_spawn.amount {
+        wave_done_event.send(WaveDoneEvent);
     }
 }
 

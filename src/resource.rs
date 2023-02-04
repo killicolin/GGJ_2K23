@@ -1,16 +1,16 @@
 use bevy::prelude::Resource;
 
 #[derive(Resource)]
-struct TotalToSpawn {
-    amount: u32,
+pub struct TotalToSpawn {
+    pub amount: u32,
 }
 
-#[derive(Resource)]
-struct TotalSpawned {
-    amount: u32,
+#[derive(Resource, Default)]
+pub struct TotalSpawned {
+    pub amount: u32,
 }
 
-#[derive(Resource)]
-struct TotalKilled {
-    amount: u32,
+#[derive(Resource, Default)]
+pub struct TotalKilled {
+    pub amount: u32,
 }
