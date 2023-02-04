@@ -9,16 +9,10 @@ use bevy::{
 };
 
 use crate::components::MainMenu;
+use crate::AppState;
 
 // UI
 const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
-
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
-pub enum AppState {
-    MainMenu,
-    InGame,
-    Paused,
-}
 
 pub fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
     // ui camera

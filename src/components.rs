@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use bevy::{
     ecs::component::Component,
     prelude::{Bundle, Deref, DerefMut, ReflectComponent, Vec2},
@@ -5,6 +7,7 @@ use bevy::{
     sprite::SpriteBundle,
     time::Timer,
 };
+use rand::{thread_rng, Rng};
 
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
@@ -105,6 +108,7 @@ pub struct MobSpawnerTimer(pub Timer);
 
 #[derive(Component, Deref, DerefMut)]
 pub struct BulletSpawnerTimer(pub Timer);
+
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
 pub struct MainMenu;
@@ -112,3 +116,46 @@ pub struct MainMenu;
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
 pub struct InGame;
+
+#[derive(Component, Default, Reflect)]
+#[reflect(Component)]
+pub struct LevelMenu;
+
+#[derive(Component, Clone)]
+pub enum DebufChoices {
+    Health,
+    Speed,
+    Bullets,
+    BulletsTtl,
+    Damage,
+    BulletsSpeed,
+    FireRate,
+}
+
+impl DebufChoices {
+    pub fn get_random() -> Self {
+        match thread_rng().gen_range(0..6) {
+            0 => DebufChoices::Health,
+            1 => DebufChoices::Speed,
+            2 => DebufChoices::Bullets,
+            3 => DebufChoices::BulletsTtl,
+            4 => DebufChoices::Damage,
+            5 => DebufChoices::BulletsSpeed,
+            6 => DebufChoices::FireRate,
+            _ => DebufChoices::Health,
+        }
+    }
+}
+impl Display for DebufChoices {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DebufChoices::Health => write!(f, "Lose health"),
+            DebufChoices::Speed => write!(f, "Lose speed"),
+            DebufChoices::Bullets => write!(f, "Lose nb of bullets"),
+            DebufChoices::BulletsTtl => write!(f, "Lose bullets hitcount"),
+            DebufChoices::Damage => write!(f, "Lose damage"),
+            DebufChoices::BulletsSpeed => write!(f, "Lose bullets speed"),
+            DebufChoices::FireRate => write!(f, "Lose fire rate"),
+        }
+    }
+}
