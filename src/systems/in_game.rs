@@ -13,14 +13,16 @@ use rand::{thread_rng, Rng};
 
 use crate::{
     components::{
-        Aim, Alive, BulletBundle, BulletSpawnerTimer, CharacterBundle, Collider, Decay, Enemy,
-        EnemyBundle, Harm, HitCount, InGame, MobSpawnerTimer, Move, Player, PlayerBundle, Weapon,
+        Aim, Alive, Bullet, BulletBundle, BulletSpawnerTimer, CharacterBundle, Collider, Decay,
+        Enemy, EnemyBundle, Harm, HitCount, InGame, MobSpawnerTimer, Move, Player, PlayerBundle,
+        Weapon,
     },
     constants::{
-        BULLETS_COLOR, BULLETS_SCALE, BULLETS_SPREAD, BULLET_HEALTH, BULLET_TTL, MOB_COLOR,
-        MOB_DAMAGE, MOB_HEALTH, MOB_SCALE, MOB_SPAWN_RADIUS, MOB_SPEED, PLAYER_AIM, PLAYER_BULLETS,
-        PLAYER_BULLETS_SPEED, PLAYER_BULLETS_TTL, PLAYER_COLOR, PLAYER_DAMAGE, PLAYER_DIRECTION,
-        PLAYER_FIRE_RATE, PLAYER_HEALTH, PLAYER_POSITION, PLAYER_SCALE, PLAYER_SPEED,
+        BULLETS_COLOR, BULLETS_DECAYS, BULLETS_SCALE, BULLETS_SPREAD, BULLET_HEALTH, BULLET_TTL,
+        MOB_COLOR, MOB_DAMAGE, MOB_HEALTH, MOB_SCALE, MOB_SPAWN_RADIUS, MOB_SPEED, PLAYER_AIM,
+        PLAYER_BULLETS, PLAYER_BULLETS_SPEED, PLAYER_BULLETS_TTL, PLAYER_COLOR, PLAYER_DAMAGE,
+        PLAYER_DIRECTION, PLAYER_FIRE_RATE, PLAYER_HEALTH, PLAYER_POSITION, PLAYER_SCALE,
+        PLAYER_SPEED,
     },
 };
 
@@ -238,6 +240,9 @@ pub fn bullet_spawner(
                     collider: Collider {},
                 },
                 hit_count: HitCount { ttl: BULLET_TTL },
+                decay: Decay {
+                    amount: BULLETS_DECAYS,
+                },
             });
         }
     }

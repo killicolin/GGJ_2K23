@@ -20,6 +20,7 @@ pub const BULLET_HEALTH: f32 = 1.0;
 pub const BULLETS_SCALE: Vec3 = Vec3::new(2.0, 2.0, 2.0);
 pub const BULLETS_COLOR: Color = Color::rgb(0.8, 0.8, 0.4);
 pub const BULLETS_SPREAD: f32 = 5.0 * std::f32::consts::PI / 180.0;
+pub const BULLETS_DECAYS: f32 = 0.001;
 
 pub const MOB_COLOR: Color = Color::rgb(1.0, 0.0, 0.0);
 pub const MOB_SPEED: f32 = 90.0;
