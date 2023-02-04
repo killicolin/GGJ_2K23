@@ -104,14 +104,17 @@ pub fn setup(mut commands: Commands) {
 pub fn player_aim_update(
     windows: Res<Windows>,
     mut query: Query<(&Transform, &mut Aim), With<Player>>,
+    query_camera: Query<&OrthographicProjection>,
 ) {
     let window = windows.get_primary().unwrap();
     let (player_transform, mut player_aim) = query.single_mut();
+    let projection = query_camera.iter().last().unwrap();
     if let Some(position) = window.cursor_position() {
         player_aim.direction = Vec2::new(
-            position.x - player_transform.translation.x,
-            position.y - player_transform.translation.y,
+            (position.x + projection.left) - player_transform.translation.x,
+            (position.y + projection.bottom) - player_transform.translation.y,
         )
+        .normalize_or_zero()
     }
 }
 
@@ -200,8 +203,11 @@ pub fn bullet_spawner(
         let (player_transform, weapon, aim, harm) = query.single();
         let angle = aim.direction.angle_between(Vec2::new(1.0, 0.0));
         for i in 0..weapon.bullets {
-            let bullet_direction = angle + ((i - i / 2) as f32) * BULLETS_SPREAD;
-            let direction = Vec2::new(bullet_direction.cos(), bullet_direction.sin());
+            let i_f32 = i as f32;
+            let i_div2_f32 = (weapon.bullets / 2) as f32;
+            let offset = i_f32 - i_div2_f32;
+            let bullet_direction = angle + offset * BULLETS_SPREAD;
+            let direction = Vec2::new(bullet_direction.cos(), -bullet_direction.sin());
             commands.spawn(BulletBundle {
                 character: CharacterBundle {
                     move_component: Move {
