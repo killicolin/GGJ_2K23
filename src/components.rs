@@ -130,8 +130,12 @@ pub struct RetryMenu;
 pub struct PlayerColor(pub Color);
 
 #[derive(Component, Clone)]
+pub struct Debuff {
+    debuff_choice: [DebufChoices; 3],
+}
+
+#[derive(Clone)]
 pub enum DebufChoices {
-    Health,
     Speed,
     Bullets,
     BulletsTtl,
@@ -140,30 +144,69 @@ pub enum DebufChoices {
     FireRate,
 }
 
-impl DebufChoices {
-    pub fn get_random() -> Self {
-        match thread_rng().gen_range(0..6) {
-            0 => DebufChoices::Health,
-            1 => DebufChoices::Speed,
-            2 => DebufChoices::Bullets,
-            3 => DebufChoices::BulletsTtl,
-            4 => DebufChoices::Damage,
-            5 => DebufChoices::BulletsSpeed,
-            6 => DebufChoices::FireRate,
-            _ => DebufChoices::Health,
+impl Debuff {
+    fn get_default(i: usize) -> DebufChoices {
+        match i {
+            0 => DebufChoices::Speed,
+            1 => DebufChoices::Bullets,
+            2 => DebufChoices::BulletsTtl,
+            3 => DebufChoices::Damage,
+            4 => DebufChoices::BulletsSpeed,
+            5 => DebufChoices::FireRate,
+            _ => DebufChoices::Speed,
         }
     }
+
+    pub fn get_parent_random() -> (Self, Self) {
+        let mut vec_mom: Vec<usize> = vec![1, 2, 3, 4, 5, 6];
+        let mut vec_dad: Vec<usize> = vec![];
+        let i1 = thread_rng().gen_range(0..6);
+        vec_dad.push(vec_mom.remove(i1));
+        let i1 = thread_rng().gen_range(0..5);
+        vec_dad.push(vec_mom.remove(i1));
+        let i1 = thread_rng().gen_range(0..4);
+        vec_dad.push(vec_mom.remove(i1));
+
+        let dad_default: [DebufChoices; 3] = [
+            Self::get_default(vec_dad[0]),
+            Self::get_default(vec_dad[1]),
+            Self::get_default(vec_dad[2]),
+        ];
+        let mom_default: [DebufChoices; 3] = [
+            Self::get_default(vec_mom[0]),
+            Self::get_default(vec_mom[1]),
+            Self::get_default(vec_mom[2]),
+        ];
+        (
+            Self {
+                debuff_choice: dad_default,
+            },
+            Self {
+                debuff_choice: mom_default,
+            },
+        )
+    }
 }
+
+impl Display for Debuff {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}\n{}\n{}\n",
+            self.debuff_choice[0], self.debuff_choice[1], self.debuff_choice[2]
+        )
+    }
+}
+
 impl Display for DebufChoices {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            DebufChoices::Health => write!(f, "Lose health"),
-            DebufChoices::Speed => write!(f, "Lose speed"),
-            DebufChoices::Bullets => write!(f, "Lose nb of bullets"),
-            DebufChoices::BulletsTtl => write!(f, "Lose bullets hitcount"),
-            DebufChoices::Damage => write!(f, "Lose damage"),
-            DebufChoices::BulletsSpeed => write!(f, "Lose bullets speed"),
-            DebufChoices::FireRate => write!(f, "Lose fire rate"),
+            DebufChoices::Speed => write!(f, "- speed"),
+            DebufChoices::Bullets => write!(f, "- nb of bullets"),
+            DebufChoices::BulletsTtl => write!(f, "- bullets hitcount"),
+            DebufChoices::Damage => write!(f, "- damage"),
+            DebufChoices::BulletsSpeed => write!(f, "- bullets speed"),
+            DebufChoices::FireRate => write!(f, "- fire rate"),
         }
     }
 }

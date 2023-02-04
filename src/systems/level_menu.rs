@@ -12,10 +12,13 @@ use bevy::{
 };
 use rand::{thread_rng, Rng};
 
-use crate::{components::PlayerColor, AppState};
 use crate::{
     components::{DebufChoices, LevelMenu},
     StatsRes,
+};
+use crate::{
+    components::{Debuff, PlayerColor},
+    AppState,
 };
 
 // UI
@@ -24,7 +27,7 @@ const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
 fn heredity_button_layout(
     asset_server: &Res<AssetServer>,
     parent: &mut ChildBuilder,
-    debuf: DebufChoices,
+    debuf: Debuff,
     color: Color,
 ) {
     parent
@@ -43,7 +46,7 @@ fn heredity_button_layout(
             },
             LevelMenu,
             PlayerColor(color),
-            debuf.clone(),
+            //debuf.clone(),
         ))
         .with_children(|parent| {
             parent.spawn((
@@ -51,8 +54,8 @@ fn heredity_button_layout(
                     format!("{debuf}"),
                     TextStyle {
                         font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                        font_size: 40.0,
-                        color: Color::rgb(0.9, 0.9, 0.9),
+                        font_size: 20.0,
+                        color: Color::rgb(0.9, 0.3, 0.3),
                     },
                 ),
                 LevelMenu,
@@ -85,11 +88,7 @@ fn heredity_sprite_layout(asset_server: &Res<AssetServer>, parent: &mut ChildBui
     return color;
 }
 
-fn heredity_layout(
-    asset_server: &Res<AssetServer>,
-    parent: &mut ChildBuilder,
-    debuf: DebufChoices,
-) {
+fn heredity_layout(asset_server: &Res<AssetServer>, parent: &mut ChildBuilder, debuf: Debuff) {
     parent
         .spawn((
             NodeBundle {
@@ -111,8 +110,7 @@ fn heredity_layout(
 }
 
 pub fn setup_level_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let debuf1 = DebufChoices::get_random();
-    let debuf2 = DebufChoices::get_random();
+    let (debuf_mom, debuf_dad) = Debuff::get_parent_random();
 
     commands.spawn((Camera2dBundle::default(), LevelMenu));
     commands
@@ -143,8 +141,8 @@ pub fn setup_level_menu(mut commands: Commands, asset_server: Res<AssetServer>) 
                     LevelMenu,
                 ))
                 .with_children(|parent| {
-                    heredity_layout(&asset_server, parent, debuf1);
-                    heredity_layout(&asset_server, parent, debuf2);
+                    heredity_layout(&asset_server, parent, debuf_dad);
+                    heredity_layout(&asset_server, parent, debuf_mom);
                 });
         });
 }
@@ -163,7 +161,7 @@ pub fn heredity_button(
             &Interaction,
             &BackgroundColor,
             &Children,
-            &DebufChoices,
+            &Debuff,
             &PlayerColor,
         ),
         (Changed<Interaction>, With<Button>),
@@ -172,15 +170,15 @@ pub fn heredity_button(
     for (interaction, _, _, debuf, color) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
-                match debuf {
-                    DebufChoices::Health => stats.player_health /= 2.0,
-                    DebufChoices::Speed => stats.player_speed /= 2.0,
-                    DebufChoices::Bullets => stats.player_bullets /= 2,
-                    DebufChoices::BulletsTtl => stats.player_bullets_ttl /= 2,
-                    DebufChoices::Damage => stats.player_damage /= 2.0,
-                    DebufChoices::BulletsSpeed => stats.player_bullets_speed /= 2.0,
-                    DebufChoices::FireRate => stats.player_fire_rate /= 2.0,
-                }
+                // match debuf {
+                //     DebufChoices::Health => stats.player_health /= 2.0,
+                //     DebufChoices::Speed => stats.player_speed /= 2.0,
+                //     DebufChoices::Bullets => stats.player_bullets /= 2,
+                //     DebufChoices::BulletsTtl => stats.player_bullets_ttl /= 2,
+                //     DebufChoices::Damage => stats.player_damage /= 2.0,
+                //     DebufChoices::BulletsSpeed => stats.player_bullets_speed /= 2.0,
+                //     DebufChoices::FireRate => stats.player_fire_rate /= 2.0,
+                // }
                 stats.player_color = color.0;
                 app_state.set(AppState::InGame).unwrap();
             }
