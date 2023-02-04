@@ -1,13 +1,10 @@
-use std::cmp::max;
-
 use bevy::{
     prelude::{
-        Camera, Camera2dBundle, Commands, Entity, EventReader, EventWriter, Input, KeyCode,
-        MouseButton, OrthographicProjection, Query, Res, Transform, Vec2, Vec3, With, Without,
+        Camera2dBundle, Commands, Entity, EventReader, EventWriter, Input, KeyCode, MouseButton,
+        OrthographicProjection, Query, Res, Transform, Vec2, Vec3, With, Without,
     },
     sprite::{collide_aabb::collide, Sprite, SpriteBundle},
     time::{Time, Timer, TimerMode},
-    transform,
     utils::default,
     window::Windows,
 };
