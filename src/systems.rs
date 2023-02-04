@@ -27,6 +27,14 @@ const PLAYER_BULLETS_SPEED: f32 = 30.0;
 const PLAYER_BULLETS_TTL: u32 = 1;
 const PLAYER_BULLETS: u32 = 20;
 
+//Bullet const variables
+const BULLET_HEALTH: f32 = 1.0;
+const BULLETS_SCALE: Vec3 = Vec3::new(2.0, 2.0, 2.0);
+const BULLETS_COLOR: Color = Color::rgb(0.8, 0.8, 0.4);
+const BULLETS_SPREAD: f32 = 5.0 * std::f32::consts::PI / 180.0;
+
+pub struct SpawnBulletEvent;
+
 pub fn setup(mut commands: Commands) {
     // Camera
     commands.spawn(Camera2dBundle::default());
@@ -133,13 +141,6 @@ pub fn transform_update(time: Res<Time>, mut query: Query<(&mut Transform, &Move
         transform.translation.y += movable.direction.y * movable.speed * time.delta_seconds();
     });
 }
-
-//Bullet const variables
-const BULLET_HEALTH: f32 = 1.0;
-const BULLETS_SCALE: Vec3 = Vec3::new(2.0, 2.0, 2.0);
-const BULLETS_COLOR: Color = Color::rgb(0.8, 0.8, 0.4);
-const BULLETS_SPREAD: f32 = 5.0 * std::f32::consts::PI / 180.0;
-pub struct SpawnBulletEvent;
 
 pub fn firing_bullet_emit(
     mut ev_spawn_bullet: EventWriter<SpawnBulletEvent>,
