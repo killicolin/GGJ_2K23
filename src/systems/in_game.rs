@@ -84,7 +84,7 @@ pub fn setup_in_game(
         s if s >= 2 && s < 4 => 1,
         _ => 2,
     };
-    let music = asset_server.load(format!("sounds/in_game_{nb_music}.mp3"));
+    let music = asset_server.load(format!("sounds/in_game_{nb_music}.ogg"));
     let handle = audio_sinks.get_handle(audio.play(music));
     commands.insert_resource(MusicController(handle));
     // Camera

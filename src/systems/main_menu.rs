@@ -21,7 +21,7 @@ pub fn setup_main_menu(
     audio: Res<Audio>,
     audio_sinks: Res<Assets<AudioSink>>,
 ) {
-    let music = asset_server.load("sounds/theme.mp3");
+    let music = asset_server.load("sounds/theme.ogg");
     let handle = audio_sinks.get_handle(audio.play(music));
     commands.insert_resource(MusicController(handle));
     // ui camera
