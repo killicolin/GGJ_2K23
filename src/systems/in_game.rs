@@ -357,3 +357,26 @@ pub fn bullet_hitting_update(
         });
     });
 }
+
+pub fn enemy_hitting_update(
+    mut query_player: Query<(&Transform, &mut Alive), (With<Player>, Without<Enemy>)>,
+    query_enemy: Query<(&Transform, &Alive, &Harm), (With<Enemy>, Without<Player>)>,
+) {
+    let (player_transform, mut player_life) = query_player.single_mut();
+    query_enemy.for_each(|(enemy_transform, enemy_life, enemy_harm)| {
+        //collide
+        if player_life.health <= 0.0 {
+            return;
+        }
+        if enemy_life.health > 0.0 {
+            if let Some(_) = collide(
+                player_transform.translation,
+                player_transform.scale.truncate(),
+                enemy_transform.translation,
+                enemy_transform.scale.truncate(),
+            ) {
+                player_life.health -= enemy_harm.damage;
+            }
+        }
+    });
+}
