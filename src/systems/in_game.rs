@@ -25,7 +25,7 @@ use crate::{
         MOB_COLOR, MOB_DAMAGE, MOB_HEALTH, MOB_SCALE, MOB_SPAWN_RADIUS, MOB_SPEED, PLAYER_AIM,
         PLAYER_DIRECTION, PLAYER_POSITION, PLAYER_SCALE,
     },
-    resource::{LastShot, MusicController, Score, TotalKilled, TotalSpawned, TotalToSpawn},
+    resource::{LastShot, MusicController, Score, TotalKilled, TotalSpawned, TotalToSpawn, ChunksMap, ChunkType},
     AppState, StatsRes,
 };
 
@@ -160,6 +160,79 @@ pub fn clean_in_game(
         sink.stop();
     }
     commands.remove_resource::<MusicController>();
+}
+
+pub fn load_chunks(mut commands: Commands, asset_server: Res<AssetServer>, mut chunk_map_resource: ResMut<ChunksMap>, query_camera: Query<&Transform>) {
+    // Get camera chunk position
+    let camera_transform = query_camera.iter().last().unwrap();
+    let x = camera_transform.translation.x;
+    let y = camera_transform.translation.y;
+
+    let chunk_x = (x / 256.0).floor() as i32;
+    let chunk_y = (y / 256.0).floor() as i32;
+
+    // Check every chunk around the camera
+    (chunk_x-2..chunk_x+2).for_each(|i| {
+        (chunk_y-2..chunk_y+2).for_each(|j| {
+            // If chunk is not loaded, load it
+            let chunk_type = chunk_map_resource.chunks.get(&(i, j));
+            match chunk_type {
+                Some(_chunk_type) => {},
+                None => {
+                    // Load chunk
+                    commands.spawn(SpriteBundle {
+                        transform: Transform {
+                            translation: Vec3 { x: i as f32 * 256.0, y: j as f32 * 256.0, z: 0.0 },
+                            scale: PLAYER_SCALE,
+                            ..default()
+                        },
+                        sprite: Sprite {
+                            ..default()
+                        },
+                        texture: asset_server.load("images/map_chunk.png"),
+                        ..default()
+                    });
+                    chunk_map_resource.chunks.insert((i, j), ChunkType::Basic);
+                }
+            }
+        })
+    })
+
+    // If adjacent chunks are not loaded, load them
+}
+
+pub fn make_map(mut commands: Commands, asset_server: Res<AssetServer>, query_camera: Query<(&Transform, &OrthographicProjection)>) {
+    // Determine camera chunk position (chunk is 256x256 pixels image)
+   let (camera_transform, orth) = query_camera.iter().last().unwrap();
+   let x = camera_transform.translation.x;
+   let y = camera_transform.translation.y;
+
+   let chunk_x = (x / 256.0).floor();
+   let chunk_y = (y / 256.0).floor();
+
+   let n_chunks_to_make_horizontal = (orth.right / 256.0) as i32 + 2;
+   let n_chunks_to_make_vertical = (orth.top / 256.0) as i32 + 2;
+
+   let texture = asset_server.load("images/map_chunk.png");
+   let chunks = (-2..n_chunks_to_make_horizontal)
+    .map(move |i| {
+        let texture = texture.clone();
+        (-2..n_chunks_to_make_vertical).map(move |j| SpriteBundle {
+            transform: Transform {
+                translation: Vec3 { x: i as f32 * 256.0, y: j as f32 * 256.0, z: 0.0 },
+                scale: PLAYER_SCALE,
+                ..default()
+            },
+            sprite: Sprite {
+                ..default()
+            },
+            texture: texture.clone(),
+            ..default()
+        })
+    }).flatten();
+    commands.spawn_batch(chunks);
+   
+   print!("Camera position: ({chunk_x},{chunk_y})");
 }
 
 //todo, fix the player direction

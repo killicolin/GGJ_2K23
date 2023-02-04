@@ -15,15 +15,16 @@ use constants::{
     PLAYER_BULLETS, PLAYER_BULLETS_SPEED, PLAYER_BULLETS_TTL, PLAYER_COLOR, PLAYER_DAMAGE,
     PLAYER_FIRE_RATE, PLAYER_HEALTH, PLAYER_SPEED,
 };
-use resource::{LastShot, Score, TotalKilled, TotalSpawned, TotalToSpawn};
+use resource::{ChunksMap, LastShot, Score, TotalKilled, TotalSpawned, TotalToSpawn};
+use std::collections::HashMap;
 use systems::{
     in_game::{
         animate_sprite, bullet_hitting_update, bullet_spawner, camera_position_update,
         change_level, clean_in_game, decay, despawn_health, despawn_ttl, enemy_direction_update,
-        enemy_hitting_update, firing_bullet_emit, game_over, key_input_update,
-        manage_mob_spawner_timer, mob_spawner, mouse_button_input_update, player_aim_update,
-        setup_in_game, transform_update, wave_is_done_emit, GameOverEvent, MobSpawnEvent,
-        SpawnBulletEvent, WaveDoneEvent,
+        enemy_hitting_update, firing_bullet_emit, game_over, key_input_update, load_chunks,
+        make_map, manage_mob_spawner_timer, mob_spawner, mouse_button_input_update,
+        player_aim_update, setup_in_game, transform_update, wave_is_done_emit, GameOverEvent,
+        MobSpawnEvent, SpawnBulletEvent, WaveDoneEvent,
     },
     level_menu::{
         clean_level_menu, decrement_date, down_pannel, heredity_button, setup_level_menu,
@@ -85,6 +86,9 @@ pub fn run(width: f32, height: f32) {
     .insert_resource(TotalKilled::default())
     .insert_resource(LastShot::default())
     .insert_resource(Score::default())
+    .insert_resource(ChunksMap {
+        chunks: HashMap::new(),
+    })
     .add_event::<SpawnBulletEvent>()
     .add_event::<MobSpawnEvent>()
     .add_event::<GameOverEvent>()
@@ -106,12 +110,17 @@ pub fn run(width: f32, height: f32) {
             .with_system(decrement_date),
     )
     .add_system_set(SystemSet::on_exit(AppState::LevelMenu).with_system(clean_level_menu))
-    .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup_in_game))
+    .add_system_set(
+        SystemSet::on_enter(AppState::InGame)
+            .with_system(setup_in_game)
+            .with_system(make_map),
+    )
     .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(clean_in_game))
     .add_system_set(
         SystemSet::on_update(AppState::InGame)
             .with_system(player_aim_update)
             .with_system(camera_position_update)
+            .with_system(load_chunks)
             .with_system(mouse_button_input_update)
             .with_system(key_input_update)
             .with_system(transform_update)
@@ -137,8 +146,6 @@ pub fn run(width: f32, height: f32) {
     app.register_type::<HitCount>();
     app.register_type::<Aim>();
     app.register_type::<Weapon>();
-    app.register_type::<Move>();
-    app.register_type::<Move>();
     if cfg!(debug_assertions) {
         app.add_plugin(EditorPlugin);
     }
