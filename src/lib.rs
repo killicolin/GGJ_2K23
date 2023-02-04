@@ -1,4 +1,5 @@
 mod components;
+mod constants;
 mod systems;
 
 use bevy::{
@@ -8,12 +9,13 @@ use bevy::{
 };
 use bevy_editor_pls::EditorPlugin;
 use components::{Aim, Alive, Decay, HitCount, Move, Weapon};
-use systems::{
-    bullet_spawner, clean_in_game, clean_main_menu, decay, despawn_health, despawn_ttl,
-    enemy_direction_update, firing_bullet_emit, key_input_update, manage_mob_spawner_timer,
-    mob_spawner, mouse_button_input_update, player_aim_update, setup_in_game, setup_main_menu,
-    start_button, transform_update, AppState, MobSpawnEvent, SpawnBulletEvent,
+use systems::in_game::{
+    bullet_spawner, clean_in_game, decay, despawn_health, despawn_ttl, enemy_direction_update,
+    firing_bullet_emit, key_input_update, manage_mob_spawner_timer, mob_spawner,
+    mouse_button_input_update, player_aim_update, setup_in_game, transform_update, MobSpawnEvent,
+    SpawnBulletEvent,
 };
+use systems::main_menu::{clean_main_menu, setup_main_menu, start_button, AppState};
 
 pub fn run(width: f32, height: f32) {
     let mut app = App::new();
