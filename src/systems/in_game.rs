@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
-        Camera2dBundle, Commands, Entity, EventReader, EventWriter, Input, KeyCode, MouseButton,
-        OrthographicProjection, Query, Res, Transform, Vec2, Vec3, With,
+        Camera, Camera2dBundle, Commands, Entity, EventReader, EventWriter, Input, KeyCode,
+        MouseButton, OrthographicProjection, Query, Res, Transform, Vec2, Vec3, With, Without,
     },
     sprite::{Sprite, SpriteBundle},
     time::{Time, Timer, TimerMode},
@@ -92,18 +92,31 @@ pub fn clean_in_game(mut commands: Commands, in_game_query: Query<Entity, With<I
 pub fn player_aim_update(
     windows: Res<Windows>,
     mut query: Query<(&Transform, &mut Aim), With<Player>>,
-    query_camera: Query<&OrthographicProjection>,
+    query_camera: Query<(&Transform, &OrthographicProjection)>,
 ) {
     let window = windows.get_primary().unwrap();
     let (player_transform, mut player_aim) = query.single_mut();
-    let projection = query_camera.iter().last().unwrap();
+    let (transform, projection) = query_camera.iter().last().unwrap();
     if let Some(position) = window.cursor_position() {
         player_aim.direction = Vec2::new(
-            (position.x + projection.left) - player_transform.translation.x,
-            (position.y + projection.bottom) - player_transform.translation.y,
+            (position.x + transform.translation.x + projection.left)
+                - player_transform.translation.x,
+            (position.y + transform.translation.y + projection.bottom)
+                - player_transform.translation.y,
         )
         .normalize_or_zero()
     }
+}
+
+pub fn camera_position_update(
+    mut query_camera: Query<&mut Transform, With<OrthographicProjection>>,
+    query: Query<&Transform, (With<Player>, Without<OrthographicProjection>)>,
+) {
+    let player_transform = query.single();
+    query_camera.for_each_mut(|mut camera_transform| {
+        let pos = (player_transform.translation).truncate();
+        camera_transform.translation = Vec3::new(pos.x, pos.y, 999.0);
+    });
 }
 
 pub fn mouse_button_input_update(
