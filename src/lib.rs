@@ -15,7 +15,7 @@ use constants::{
     PLAYER_BULLETS, PLAYER_BULLETS_SPEED, PLAYER_BULLETS_TTL, PLAYER_COLOR, PLAYER_DAMAGE,
     PLAYER_FIRE_RATE, PLAYER_HEALTH, PLAYER_SPEED,
 };
-use resource::{TotalKilled, TotalSpawned, TotalToSpawn};
+use resource::{LastShot, TotalKilled, TotalSpawned, TotalToSpawn};
 use systems::{
     in_game::{
         animate_sprite, bullet_hitting_update, bullet_spawner, camera_position_update,
@@ -81,6 +81,7 @@ pub fn run(width: f32, height: f32) {
     })
     .insert_resource(TotalSpawned::default())
     .insert_resource(TotalKilled::default())
+    .insert_resource(LastShot::default())
     .add_event::<SpawnBulletEvent>()
     .add_event::<MobSpawnEvent>()
     .add_event::<GameOverEvent>()

@@ -108,9 +108,6 @@ pub struct BulletBundle {
 #[derive(Component, Deref, DerefMut)]
 pub struct MobSpawnerTimer(pub Timer);
 
-#[derive(Component, Deref, DerefMut)]
-pub struct BulletSpawnerTimer(pub Timer);
-
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
 pub struct MainMenu;

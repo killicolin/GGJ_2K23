@@ -16,16 +16,15 @@ use rand::{thread_rng, Rng};
 
 use crate::{
     components::{
-        Aim, Alive, AnimationTimer, Bullet, BulletBundle, BulletSpawnerTimer, CharacterBundle,
-        Collider, Decay, Enemy, EnemyBundle, Harm, HitCount, InGame, MobSpawnerTimer, Move, Player,
-        PlayerBundle, Weapon,
+        Aim, Alive, AnimationTimer, Bullet, BulletBundle, CharacterBundle, Collider, Decay, Enemy,
+        EnemyBundle, Harm, HitCount, InGame, MobSpawnerTimer, Move, Player, PlayerBundle, Weapon,
     },
     constants::{
         BULLETS_COLOR, BULLETS_DECAYS, BULLETS_SCALE, BULLETS_SPREAD, BULLET_HEALTH, BULLET_TTL,
         MOB_COLOR, MOB_DAMAGE, MOB_HEALTH, MOB_SCALE, MOB_SPAWN_RADIUS, MOB_SPEED, PLAYER_AIM,
-        PLAYER_DIRECTION, PLAYER_FIRE_RATE, PLAYER_POSITION, PLAYER_SCALE,
+        PLAYER_DIRECTION, PLAYER_POSITION, PLAYER_SCALE,
     },
-    resource::{TotalKilled, TotalSpawned, TotalToSpawn},
+    resource::{LastShot, TotalKilled, TotalSpawned, TotalToSpawn},
     AppState, StatsRes,
 };
 
@@ -116,10 +115,6 @@ pub fn setup_in_game(
         MobSpawnerTimer(Timer::from_seconds(1.0, TimerMode::Repeating)),
         InGame,
     ));
-    commands.spawn((
-        BulletSpawnerTimer(Timer::from_seconds(PLAYER_FIRE_RATE, TimerMode::Repeating)),
-        InGame,
-    ));
 }
 
 pub fn clean_in_game(
@@ -169,18 +164,22 @@ pub fn camera_position_update(
 }
 
 pub fn mouse_button_input_update(
+    time: Res<Time>,
+    mut last_shot: ResMut<LastShot>,
+    mut ev_spawn_bullet: EventWriter<SpawnBulletEvent>,
     buttons: Res<Input<MouseButton>>,
     mut query: Query<&mut Weapon, With<Player>>,
-    mut query_timer: Query<&mut BulletSpawnerTimer>,
 ) {
     let mut weapon = query.single_mut();
-    let mut timer = query_timer.single_mut();
     if buttons.just_pressed(MouseButton::Left) {
+        let now = time.elapsed_seconds();
+        if now - last_shot.delta_time > weapon.fire_rate {
+            ev_spawn_bullet.send(SpawnBulletEvent);
+            last_shot.delta_time = time.elapsed_seconds();
+        }
         weapon.is_firing = true;
-        timer.unpause();
     } else if buttons.just_released(MouseButton::Left) {
         weapon.is_firing = false;
-        timer.pause();
     }
 }
 
@@ -234,13 +233,14 @@ pub fn transform_update(time: Res<Time>, mut query: Query<(&mut Transform, &Move
 pub fn firing_bullet_emit(
     time: Res<Time>,
     mut ev_spawn_bullet: EventWriter<SpawnBulletEvent>,
+    mut last_shot: ResMut<LastShot>,
     query: Query<&Weapon, With<Player>>,
-    mut query_timer: Query<&mut BulletSpawnerTimer>,
 ) {
     let weapon = query.single();
-    let mut timer = query_timer.single_mut();
-    if weapon.is_firing && timer.tick(time.delta()).just_finished() {
+    let now = time.elapsed_seconds();
+    if weapon.is_firing && (now - last_shot.delta_time > weapon.fire_rate) {
         ev_spawn_bullet.send(SpawnBulletEvent);
+        last_shot.delta_time = now;
     }
 }
 
