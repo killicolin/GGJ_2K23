@@ -1,52 +1,64 @@
 use bevy::{
     ecs::component::Component,
-    prelude::{Bundle, Vec2},
+    prelude::{Bundle, ReflectComponent, Vec2},
+    reflect::Reflect,
     sprite::SpriteBundle,
 };
 
-#[derive(Component)]
+#[derive(Component, Default, Reflect)]
+#[reflect(Component)]
 pub struct Alive {
     pub health: f32,
 }
 
-#[derive(Component)]
+#[derive(Component, Default, Reflect)]
+#[reflect(Component)]
 pub struct Move {
     pub speed: f32,
     pub direction: Vec2,
 }
 
-#[derive(Component)]
+#[derive(Component, Default, Reflect)]
+#[reflect(Component)]
 pub struct Decay {
     pub amount: f32,
 }
 
-#[derive(Component)]
+#[derive(Component, Default, Reflect)]
+#[reflect(Component)]
 pub struct HitCount {
     pub ttl: u32,
 }
-#[derive(Component)]
+#[derive(Component, Default, Reflect)]
+#[reflect(Component)]
 pub struct Harm {
     pub damage: f32,
 }
 
-#[derive(Component)]
+#[derive(Component, Default, Reflect)]
+#[reflect(Component)]
 pub struct Collider;
 
-#[derive(Component)]
+#[derive(Component, Default, Reflect)]
+#[reflect(Component)]
 pub struct Player;
 
-#[derive(Component)]
+#[derive(Component, Default, Reflect)]
+#[reflect(Component)]
 pub struct Enemy;
 
-#[derive(Component)]
+#[derive(Component, Default, Reflect)]
+#[reflect(Component)]
 pub struct Bullet;
 
-#[derive(Component)]
+#[derive(Component, Default, Reflect)]
+#[reflect(Component)]
 pub struct Aim {
     pub direction: Vec2,
 }
 
-#[derive(Component)]
+#[derive(Component, Default, Reflect)]
+#[reflect(Component)]
 pub struct Weapon {
     pub fire_rate: f32,
     pub bullet_ttl: u32,
