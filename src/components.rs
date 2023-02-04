@@ -4,7 +4,7 @@ use bevy::{
     ecs::component::Component,
     prelude::{Bundle, Color, Deref, DerefMut, ReflectComponent, Vec2},
     reflect::Reflect,
-    sprite::SpriteBundle,
+    sprite::{SpriteBundle, SpriteSheetBundle},
     time::Timer,
 };
 use rand::{thread_rng, Rng};
@@ -76,7 +76,6 @@ pub struct CharacterBundle {
     pub move_component: Move,
     pub harm: Harm,
     pub alive: Alive,
-    pub sprite_bundle: SpriteBundle,
     pub collider: Collider,
     pub in_game: InGame,
 }
@@ -85,6 +84,7 @@ pub struct CharacterBundle {
 pub struct PlayerBundle {
     pub player: Player,
     pub character: CharacterBundle,
+    pub sprite_bundle: SpriteSheetBundle,
     pub weapon: Weapon,
     pub aim: Aim,
 }
@@ -92,6 +92,7 @@ pub struct PlayerBundle {
 #[derive(Bundle)]
 pub struct EnemyBundle {
     pub enemy: Enemy,
+    pub sprite_bundle: SpriteSheetBundle,
     pub character: CharacterBundle,
 }
 
@@ -99,6 +100,7 @@ pub struct EnemyBundle {
 pub struct BulletBundle {
     pub bullet: Bullet,
     pub character: CharacterBundle,
+    pub sprite_bundle: SpriteBundle,
     pub hit_count: HitCount,
     pub decay: Decay,
 }
@@ -214,3 +216,6 @@ impl Display for DebufChoices {
         }
     }
 }
+
+#[derive(Component, Deref, DerefMut)]
+pub struct AnimationTimer(pub Timer);

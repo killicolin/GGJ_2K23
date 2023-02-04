@@ -1,10 +1,13 @@
 use bevy::{
     prelude::{
-        AssetServer, Camera2dBundle, Commands, Entity, EventReader, EventWriter, Input, KeyCode,
-        MouseButton, OrthographicProjection, Query, Res, ResMut, State, Transform, Vec2, Vec3,
-        With, Without,
+        AssetServer, Assets, Camera2dBundle, Commands, Entity, EventReader, EventWriter, Input,
+        KeyCode, MouseButton, OrthographicProjection, Query, Res, ResMut, State, Transform, Vec2,
+        Vec3, With, Without,
     },
-    sprite::{collide_aabb::collide, Sprite, SpriteBundle},
+    sprite::{
+        collide_aabb::collide, Sprite, SpriteBundle, SpriteSheetBundle, TextureAtlas,
+        TextureAtlasSprite,
+    },
     time::{Time, Timer, TimerMode},
     utils::default,
     window::Windows,
@@ -13,9 +16,9 @@ use rand::{thread_rng, Rng};
 
 use crate::{
     components::{
-        Aim, Alive, Bullet, BulletBundle, BulletSpawnerTimer, CharacterBundle, Collider, Decay,
-        Enemy, EnemyBundle, Harm, HitCount, InGame, MobSpawnerTimer, Move, Player, PlayerBundle,
-        Weapon,
+        Aim, Alive, AnimationTimer, Bullet, BulletBundle, BulletSpawnerTimer, CharacterBundle,
+        Collider, Decay, Enemy, EnemyBundle, Harm, HitCount, InGame, MobSpawnerTimer, Move, Player,
+        PlayerBundle, Weapon,
     },
     constants::{
         BULLETS_COLOR, BULLETS_DECAYS, BULLETS_SCALE, BULLETS_SPREAD, BULLET_HEALTH, BULLET_TTL,
@@ -35,51 +38,80 @@ pub struct GameOverEvent;
 #[derive(Default)]
 pub struct MobSpawnEvent;
 
-pub fn setup_in_game(mut commands: Commands, stats: Res<StatsRes>, asset_server: Res<AssetServer>) {
+pub fn animate_sprite(
+    time: Res<Time>,
+    mut query: Query<(&mut AnimationTimer, &mut TextureAtlasSprite, &Move)>,
+) {
+    for (mut timer, mut sprite, move_component) in &mut query {
+        if (move_component.direction != Vec2 { x: 0.0, y: 0.0 }) {
+            timer.tick(time.delta());
+            if timer.just_finished() {
+                sprite.index = (sprite.index + 1) % 6;
+            }
+        } else {
+            sprite.index = 0;
+        }
+    }
+}
+
+pub fn setup_in_game(
+    mut commands: Commands,
+    stats: Res<StatsRes>,
+    asset_server: Res<AssetServer>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+) {
     // Camera
     commands.spawn((Camera2dBundle::default(), InGame));
-
+    let texture_handle = asset_server.load("images/atlas.png");
+    let texture_atlas =
+        TextureAtlas::from_grid(texture_handle, Vec2::new(64.0, 64.0), 6, 1, None, None);
+    let texture_atlas_handle = texture_atlases.add(texture_atlas);
+    // Use only the subset of sprites in the sheet that make up the run animation
     // Spawn player
-    commands.spawn(PlayerBundle {
-        character: CharacterBundle {
-            move_component: Move {
-                speed: stats.player_speed,
-                direction: PLAYER_DIRECTION,
+    commands.spawn((
+        PlayerBundle {
+            character: CharacterBundle {
+                move_component: Move {
+                    speed: stats.player_speed,
+                    direction: PLAYER_DIRECTION,
+                },
+                harm: Harm {
+                    damage: stats.player_damage,
+                },
+                alive: Alive {
+                    health: stats.player_health,
+                },
+                collider: Collider,
+                in_game: InGame,
             },
-            harm: Harm {
-                damage: stats.player_damage,
-            },
-            alive: Alive {
-                health: stats.player_health,
-            },
-            sprite_bundle: SpriteBundle {
+            sprite_bundle: SpriteSheetBundle {
                 transform: Transform {
                     translation: PLAYER_POSITION,
                     scale: PLAYER_SCALE,
                     ..default()
                 },
-                sprite: Sprite {
+                sprite: TextureAtlasSprite {
                     color: stats.player_color,
+                    index: 0,
                     ..default()
                 },
-                texture: asset_server.load("images/sprite.png"),
+                texture_atlas: texture_atlas_handle,
                 ..default()
             },
-            collider: Collider,
-            in_game: InGame,
+            player: Player,
+            weapon: Weapon {
+                fire_rate: stats.player_fire_rate,
+                bullet_ttl: stats.player_bullets_ttl,
+                bullet_speed: stats.player_bullets_speed,
+                bullets: stats.player_bullets,
+                is_firing: false,
+            },
+            aim: Aim {
+                direction: PLAYER_AIM,
+            },
         },
-        player: Player,
-        weapon: Weapon {
-            fire_rate: stats.player_fire_rate,
-            bullet_ttl: stats.player_bullets_ttl,
-            bullet_speed: stats.player_bullets_speed,
-            bullets: stats.player_bullets,
-            is_firing: false,
-        },
-        aim: Aim {
-            direction: PLAYER_AIM,
-        },
-    });
+        AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+    ));
     commands.spawn((
         MobSpawnerTimer(Timer::from_seconds(1.0, TimerMode::Repeating)),
         InGame,
@@ -240,19 +272,19 @@ pub fn bullet_spawner(
                     alive: Alive {
                         health: BULLET_HEALTH,
                     },
-                    sprite_bundle: SpriteBundle {
-                        transform: Transform {
-                            translation: player_transform.translation,
-                            scale: BULLETS_SCALE,
-                            ..default()
-                        },
-                        sprite: Sprite {
-                            color: BULLETS_COLOR,
-                            ..default()
-                        },
+                    collider: Collider {},
+                },
+                sprite_bundle: SpriteBundle {
+                    transform: Transform {
+                        translation: player_transform.translation,
+                        scale: BULLETS_SCALE,
                         ..default()
                     },
-                    collider: Collider {},
+                    sprite: Sprite {
+                        color: BULLETS_COLOR,
+                        ..default()
+                    },
+                    ..default()
                 },
                 hit_count: HitCount { ttl: BULLET_TTL },
                 decay: Decay {
@@ -283,7 +315,12 @@ pub fn mob_spawner(
     asset_server: Res<AssetServer>,
     to_spawn: Res<TotalToSpawn>,
     mut spawned: ResMut<TotalSpawned>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
+    let texture_handle = asset_server.load("images/atlas.png");
+    let texture_atlas =
+        TextureAtlas::from_grid(texture_handle, Vec2::new(64.0, 64.0), 6, 1, None, None);
+    let texture_atlas_handle = texture_atlases.add(texture_atlas);
     if mob_spawn_event.is_empty() || to_spawn.amount <= spawned.amount {
         return;
     }
@@ -302,34 +339,39 @@ pub fn mob_spawner(
         z: player.translation.z,
     };
     // Spawn
-    commands.spawn(EnemyBundle {
-        character: CharacterBundle {
-            in_game: InGame,
-            move_component: Move {
-                speed: MOB_SPEED,
-                direction: (player.translation - mob_spawn_position)
-                    .truncate()
-                    .normalize(),
+    commands.spawn((
+        EnemyBundle {
+            character: CharacterBundle {
+                in_game: InGame,
+                move_component: Move {
+                    speed: MOB_SPEED,
+                    direction: (player.translation - mob_spawn_position)
+                        .truncate()
+                        .normalize(),
+                },
+                harm: Harm { damage: MOB_DAMAGE },
+                alive: Alive { health: MOB_HEALTH },
+                collider: Collider,
             },
-            harm: Harm { damage: MOB_DAMAGE },
-            alive: Alive { health: MOB_HEALTH },
-            sprite_bundle: SpriteBundle {
+            sprite_bundle: SpriteSheetBundle {
                 transform: Transform {
                     translation: mob_spawn_position,
                     scale: MOB_SCALE,
                     ..default()
                 },
-                sprite: Sprite {
+                sprite: TextureAtlasSprite {
                     color: MOB_COLOR,
+                    index: 0,
                     ..default()
                 },
-                texture: asset_server.load("images/sprite.png"),
+                texture_atlas: texture_atlas_handle,
                 ..default()
             },
-            collider: Collider,
+            enemy: Enemy,
         },
-        enemy: Enemy,
-    });
+        AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+    ));
+
     spawned.amount += 1;
 }
 
