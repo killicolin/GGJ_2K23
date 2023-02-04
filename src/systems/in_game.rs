@@ -273,7 +273,7 @@ pub fn mob_spawner(
     to_spawn: Res<TotalToSpawn>,
     mut spawned: ResMut<TotalSpawned>,
 ) {
-    if mob_spawn_event.is_empty() || to_spawn.amount > spawned.amount {
+    if mob_spawn_event.is_empty() || to_spawn.amount <= spawned.amount {
         return;
     }
     mob_spawn_event.clear();

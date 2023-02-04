@@ -84,7 +84,6 @@ pub fn run(width: f32, height: f32) {
     .add_state(AppState::LevelMenu)
     .init_resource::<StatsRes>()
     .add_event::<WaveDoneEvent>()
-    .add_state(AppState::MainMenu)
     .add_system_set(SystemSet::on_enter(AppState::MainMenu).with_system(setup_main_menu))
     .add_system_set(SystemSet::on_update(AppState::MainMenu).with_system(start_button))
     .add_system_set(SystemSet::on_exit(AppState::MainMenu).with_system(clean_main_menu))
