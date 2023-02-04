@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
-        Camera2dBundle, Color, Commands, Input, KeyCode, MouseButton, Query, Res, Transform, Vec2,
-        Vec3, With,
+        Camera2dBundle, Color, Commands, EventReader, EventWriter, Input, KeyCode, MouseButton,
+        Query, Res, Transform, Vec2, Vec3, With,
     },
     sprite::{Sprite, SpriteBundle},
     time::Time,
@@ -10,7 +10,7 @@ use bevy::{
 };
 
 use crate::components::{
-    Aim, Alive, CharacterBundle, Collider, Harm, Move, Player, PlayerBundle, Weapon,
+    Aim, Alive, BulletBundle, CharacterBundle, Collider, Harm, Move, Player, PlayerBundle, Weapon,
 };
 
 // Player starting stats
@@ -25,7 +25,7 @@ const PLAYER_COLOR: Color = Color::rgb(0.3, 0.3, 0.7);
 const PLAYER_FIRE_RATE: f32 = 1.0;
 const PLAYER_BULLETS_SPEED: f32 = 30.0;
 const PLAYER_BULLETS_TTL: u32 = 1;
-const PLAYER_BULLETS: u32 = 1;
+const PLAYER_BULLETS: u32 = 20;
 
 pub fn setup(mut commands: Commands) {
     // Camera
@@ -134,4 +134,61 @@ pub fn transform_update(time: Res<Time>, mut query: Query<(&mut Transform, &Move
     });
 }
 
-// fn firing_update(time: Res<Time>, query: Query<(&mut Transform, &Move)>)
+//Bullet const variables
+const BULLET_HEALTH: f32 = 1.0;
+const BULLETS_SCALE: Vec3 = Vec3::new(2.0, 2.0, 2.0);
+const BULLETS_COLOR: Color = Color::rgb(0.8, 0.8, 0.4);
+const BULLETS_SPREAD: f32 = 5.0 * std::f32::consts::PI / 180.0;
+pub struct SpawnBulletEvent;
+
+pub fn firing_bullet_emit(
+    mut ev_spawn_bullet: EventWriter<SpawnBulletEvent>,
+    query: Query<&Weapon, With<Player>>,
+) {
+    let weapon = query.single();
+    if weapon.is_firing {
+        ev_spawn_bullet.send(SpawnBulletEvent);
+    }
+}
+
+pub fn bullet_spawner(
+    mut commands: Commands,
+    mut ev_spawn_bullet: EventReader<SpawnBulletEvent>,
+    query: Query<(&Transform, &Weapon, &Aim, &Harm), With<Player>>,
+) {
+    for _ in ev_spawn_bullet.iter() {
+        let (player_transform, weapon, aim, harm) = query.single();
+        let angle = aim.direction.angle_between(Vec2::new(1.0, 0.0));
+        for i in 0..weapon.bullets {
+            let bullet_direction = angle + ((i - i / 2) as f32) * BULLETS_SPREAD;
+            let direction = Vec2::new(bullet_direction.cos(), bullet_direction.sin());
+            commands.spawn(BulletBundle {
+                character: CharacterBundle {
+                    move_component: Move {
+                        speed: weapon.bullet_speed,
+                        direction: direction,
+                    },
+                    harm: Harm {
+                        damage: harm.damage,
+                    },
+                    alive: Alive {
+                        health: BULLET_HEALTH,
+                    },
+                    sprite_bundle: SpriteBundle {
+                        transform: Transform {
+                            translation: player_transform.translation,
+                            scale: BULLETS_SCALE,
+                            ..default()
+                        },
+                        sprite: Sprite {
+                            color: BULLETS_COLOR,
+                            ..default()
+                        },
+                        ..default()
+                    },
+                    collider: Collider {},
+                },
+            });
+        }
+    }
+}
