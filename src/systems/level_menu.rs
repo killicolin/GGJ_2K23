@@ -34,11 +34,12 @@ fn heredity_button_layout(
         .spawn((
             ButtonBundle {
                 style: Style {
-                    size: Size::new(Val::Px(370.0), Val::Px(65.0)),
+                    size: Size::new(Val::Percent(90.0), Val::Px(100.0)),
                     // horizontally center child text
                     justify_content: JustifyContent::Center,
                     // vertically center child text
                     align_items: AlignItems::Center,
+                    flex_direction: FlexDirection::Column,
                     ..default()
                 },
                 background_color: NORMAL_BUTTON.into(),
@@ -48,6 +49,19 @@ fn heredity_button_layout(
             PlayerColor(color),
             debuf.clone(),
         ))
+        .with_children(|parent| {
+            parent.spawn((
+                TextBundle::from_section(
+                    format!("Flaws :\n"),
+                    TextStyle {
+                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                        font_size: 20.0,
+                        color: Color::rgb(0.9, 0.8, 0.3),
+                    },
+                ),
+                LevelMenu,
+            ));
+        })
         .with_children(|parent| {
             parent.spawn((
                 TextBundle::from_section(
@@ -69,6 +83,7 @@ fn heredity_sprite_layout(asset_server: &Res<AssetServer>, parent: &mut ChildBui
         thread_rng().gen_range(0.0..1.0),
         thread_rng().gen_range(0.0..1.0),
     );
+
     parent.spawn((
         ButtonBundle {
             style: Style {
@@ -88,21 +103,54 @@ fn heredity_sprite_layout(asset_server: &Res<AssetServer>, parent: &mut ChildBui
     return color;
 }
 
-fn heredity_layout(asset_server: &Res<AssetServer>, parent: &mut ChildBuilder, debuf: Debuff) {
+fn heredity_layout(
+    asset_server: &Res<AssetServer>,
+    parent: &mut ChildBuilder,
+    debuf: Debuff,
+    parent_name: &str,
+) {
     parent
         .spawn((
             NodeBundle {
                 style: Style {
-                    size: Size::new(Val::Percent(70.0), Val::Percent(70.0)),
+                    size: Size::new(Val::Percent(35.0), Val::Percent(50.0)),
                     align_items: AlignItems::Center,
                     flex_direction: FlexDirection::Column,
                     justify_content: JustifyContent::SpaceAround,
                     ..default()
                 },
+                background_color: Color::rgb(0.65, 0.65, 0.65).into(),
                 ..default()
             },
             LevelMenu,
         ))
+        .with_children(|parent| {
+            parent
+                .spawn((
+                    NodeBundle {
+                        style: Style {
+                            size: Size::new(Val::Percent(100.0), Val::Percent(10.0)),
+                            align_items: AlignItems::Center,
+                            flex_direction: FlexDirection::Column,
+                            justify_content: JustifyContent::SpaceAround,
+                            ..default()
+                        },
+                        background_color: NORMAL_BUTTON.into(),
+                        ..default()
+                    },
+                    LevelMenu,
+                ))
+                .with_children(|background_title| {
+                    background_title.spawn(TextBundle::from_section(
+                        format!("{parent_name}"),
+                        TextStyle {
+                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                            font_size: 20.0,
+                            color: Color::rgb(0.8, 0.8, 0.8),
+                        },
+                    ));
+                });
+        })
         .with_children(|parent| {
             let color = heredity_sprite_layout(&asset_server, parent);
             heredity_button_layout(&asset_server, parent, debuf, color);
@@ -141,8 +189,8 @@ pub fn setup_level_menu(mut commands: Commands, asset_server: Res<AssetServer>) 
                     LevelMenu,
                 ))
                 .with_children(|parent| {
-                    heredity_layout(&asset_server, parent, debuf_dad);
-                    heredity_layout(&asset_server, parent, debuf_mom);
+                    heredity_layout(&asset_server, parent, debuf_dad, "Dad");
+                    heredity_layout(&asset_server, parent, debuf_mom, "Mom");
                 });
         });
 }
