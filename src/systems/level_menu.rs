@@ -46,7 +46,7 @@ fn heredity_button_layout(
             },
             LevelMenu,
             PlayerColor(color),
-            //debuf.clone(),
+            debuf.clone(),
         ))
         .with_children(|parent| {
             parent.spawn((
@@ -170,15 +170,17 @@ pub fn heredity_button(
     for (interaction, _, _, debuf, color) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
-                // match debuf {
-                //     DebufChoices::Health => stats.player_health /= 2.0,
-                //     DebufChoices::Speed => stats.player_speed /= 2.0,
-                //     DebufChoices::Bullets => stats.player_bullets /= 2,
-                //     DebufChoices::BulletsTtl => stats.player_bullets_ttl /= 2,
-                //     DebufChoices::Damage => stats.player_damage /= 2.0,
-                //     DebufChoices::BulletsSpeed => stats.player_bullets_speed /= 2.0,
-                //     DebufChoices::FireRate => stats.player_fire_rate /= 2.0,
-                // }
+                debuf
+                    .get_defaults()
+                    .iter()
+                    .for_each(|debuff_choice| match debuff_choice {
+                        DebufChoices::Speed => stats.player_speed /= 2.0,
+                        DebufChoices::Bullets => stats.player_bullets /= 2,
+                        DebufChoices::BulletsTtl => stats.player_bullets_ttl /= 2,
+                        DebufChoices::Damage => stats.player_damage /= 2.0,
+                        DebufChoices::BulletsSpeed => stats.player_bullets_speed /= 2.0,
+                        DebufChoices::FireRate => stats.player_fire_rate /= 2.0,
+                    });
                 stats.player_color = color.0;
                 app_state.set(AppState::InGame).unwrap();
             }

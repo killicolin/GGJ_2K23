@@ -145,6 +145,10 @@ pub enum DebufChoices {
 }
 
 impl Debuff {
+    pub fn get_defaults(&self) -> &[DebufChoices; 3] {
+        &self.debuff_choice
+    }
+
     fn get_default(i: usize) -> DebufChoices {
         match i {
             0 => DebufChoices::Speed,
