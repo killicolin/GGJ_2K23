@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use bevy::{
     ecs::component::Component,
-    prelude::{Bundle, Deref, DerefMut, ReflectComponent, Vec2},
+    prelude::{Bundle, Color, Deref, DerefMut, ReflectComponent, Vec2},
     reflect::Reflect,
     sprite::SpriteBundle,
     time::Timer,
@@ -120,6 +120,10 @@ pub struct InGame;
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
 pub struct LevelMenu;
+
+#[derive(Component, Default, Reflect)]
+#[reflect(Component)]
+pub struct PlayerColor(pub Color);
 
 #[derive(Component, Clone)]
 pub enum DebufChoices {
