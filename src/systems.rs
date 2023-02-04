@@ -11,8 +11,8 @@ use bevy::{
 use rand::{thread_rng, Rng};
 
 use crate::components::{
-    Aim, Alive, BulletBundle, CharacterBundle, Collider, Enemy, EnemyBundle, Harm, MobSpawnerTimer,
-    Move, Player, PlayerBundle, Weapon,
+    Aim, Alive, BulletBundle, BulletSpawnerTimer, CharacterBundle, Collider, Enemy, EnemyBundle,
+    Harm, MobSpawnerTimer, Move, Player, PlayerBundle, Weapon,
 };
 
 // Player starting stats
@@ -94,6 +94,10 @@ pub fn setup(mut commands: Commands) {
         1.0,
         TimerMode::Repeating,
     )));
+    commands.spawn(BulletSpawnerTimer(Timer::from_seconds(
+        PLAYER_FIRE_RATE,
+        TimerMode::Repeating,
+    )));
 }
 
 //todo, fix the player direction
@@ -114,12 +118,16 @@ pub fn player_aim_update(
 pub fn mouse_button_input_update(
     buttons: Res<Input<MouseButton>>,
     mut query: Query<&mut Weapon, With<Player>>,
+    mut query_timer: Query<&mut BulletSpawnerTimer>,
 ) {
     let mut weapon = query.single_mut();
+    let mut timer = query_timer.single_mut();
     if buttons.just_pressed(MouseButton::Left) {
         weapon.is_firing = true;
+        timer.unpause();
     } else if buttons.just_released(MouseButton::Left) {
         weapon.is_firing = false;
+        timer.pause();
     }
 }
 
@@ -159,11 +167,14 @@ pub fn transform_update(time: Res<Time>, mut query: Query<(&mut Transform, &Move
 }
 
 pub fn firing_bullet_emit(
+    time: Res<Time>,
     mut ev_spawn_bullet: EventWriter<SpawnBulletEvent>,
     query: Query<&Weapon, With<Player>>,
+    mut query_timer: Query<&mut BulletSpawnerTimer>,
 ) {
     let weapon = query.single();
-    if weapon.is_firing {
+    let mut timer = query_timer.single_mut();
+    if weapon.is_firing && timer.tick(time.delta()).just_finished() {
         ev_spawn_bullet.send(SpawnBulletEvent);
     }
 }
