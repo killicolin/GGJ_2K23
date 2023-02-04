@@ -1,5 +1,6 @@
 mod components;
 mod constants;
+mod resource;
 mod systems;
 
 use bevy::{

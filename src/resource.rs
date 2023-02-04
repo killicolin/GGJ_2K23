@@ -1,3 +1,5 @@
+use bevy::prelude::Resource;
+
 #[derive(Resource)]
 struct TotalToSpawn {
     amount: u32,
