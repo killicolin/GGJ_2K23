@@ -27,4 +27,4 @@ pub const MOB_SPEED: f32 = 90.0;
 pub const MOB_SPAWN_RADIUS: f32 = 2000.0;
 pub const MOB_DAMAGE: f32 = 1.0;
 pub const MOB_HEALTH: f32 = 1.0;
-pub const MOB_SCALE: Vec3 = Vec3::new(15.0, 15.0, 15.0);
+pub const MOB_SCALE: Vec3 = Vec3::new(0.5, 0.5, 0.5);

@@ -53,7 +53,7 @@ pub fn setup_in_game(mut commands: Commands, stats: Res<StatsRes>, asset_server:
                     ..default()
                 },
                 sprite: Sprite {
-                    color: PLAYER_COLOR,
+                    color: stats.player_color,
                     ..default()
                 },
                 texture: asset_server.load("images/sprite.png"),
@@ -265,6 +265,7 @@ pub fn mob_spawner(
     mut commands: Commands,
     query: Query<&Transform, With<Player>>,
     mob_spawn_event: EventReader<MobSpawnEvent>,
+    asset_server: Res<AssetServer>,
 ) {
     if mob_spawn_event.is_empty() {
         return;
@@ -302,6 +303,7 @@ pub fn mob_spawner(
                     color: MOB_COLOR,
                     ..default()
                 },
+                texture: asset_server.load("images/sprite.png"),
                 ..default()
             },
             collider: Collider,

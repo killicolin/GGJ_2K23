@@ -12,7 +12,7 @@ use bevy::{
 };
 use rand::{thread_rng, Rng};
 
-use crate::AppState;
+use crate::{components::PlayerColor, AppState};
 use crate::{
     components::{DebufChoices, LevelMenu},
     StatsRes,
@@ -25,6 +25,7 @@ fn heredity_button_layout(
     asset_server: &Res<AssetServer>,
     parent: &mut ChildBuilder,
     debuf: DebufChoices,
+    color: Color,
 ) {
     parent
         .spawn((
@@ -41,6 +42,7 @@ fn heredity_button_layout(
                 ..default()
             },
             LevelMenu,
+            PlayerColor(color),
             debuf.clone(),
         ))
         .with_children(|parent| {
@@ -58,7 +60,12 @@ fn heredity_button_layout(
         });
 }
 
-fn heredity_sprite_layout(asset_server: &Res<AssetServer>, parent: &mut ChildBuilder) {
+fn heredity_sprite_layout(asset_server: &Res<AssetServer>, parent: &mut ChildBuilder) -> Color {
+    let color = Color::rgb(
+        thread_rng().gen_range(0.0..1.0),
+        thread_rng().gen_range(0.0..1.0),
+        thread_rng().gen_range(0.0..1.0),
+    );
     parent.spawn((
         ButtonBundle {
             style: Style {
@@ -70,15 +77,12 @@ fn heredity_sprite_layout(asset_server: &Res<AssetServer>, parent: &mut ChildBui
                 ..default()
             },
             image: UiImage(asset_server.load("images/sprite.png")),
-            background_color: BackgroundColor(Color::rgb(
-                thread_rng().gen_range(0.0..1.0),
-                thread_rng().gen_range(0.0..1.0),
-                thread_rng().gen_range(0.0..1.0),
-            )),
+            background_color: BackgroundColor(color.clone()),
             ..default()
         },
         LevelMenu,
     ));
+    return color;
 }
 
 fn heredity_layout(
@@ -101,8 +105,8 @@ fn heredity_layout(
             LevelMenu,
         ))
         .with_children(|parent| {
-            heredity_sprite_layout(&asset_server, parent);
-            heredity_button_layout(&asset_server, parent, debuf);
+            let color = heredity_sprite_layout(&asset_server, parent);
+            heredity_button_layout(&asset_server, parent, debuf, color);
         });
 }
 
@@ -155,11 +159,17 @@ pub fn heredity_button(
     mut app_state: ResMut<State<AppState>>,
     mut stats: ResMut<StatsRes>,
     mut interaction_query: Query<
-        (&Interaction, &mut BackgroundColor, &Children, &DebufChoices),
+        (
+            &Interaction,
+            &BackgroundColor,
+            &Children,
+            &DebufChoices,
+            &PlayerColor,
+        ),
         (Changed<Interaction>, With<Button>),
     >,
 ) {
-    for (interaction, _, _, debuf) in &mut interaction_query {
+    for (interaction, _, _, debuf, color) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
                 match debuf {
@@ -171,6 +181,7 @@ pub fn heredity_button(
                     DebufChoices::BulletsSpeed => stats.player_bullets_speed /= 2.0,
                     DebufChoices::FireRate => stats.player_fire_rate /= 2.0,
                 }
+                stats.player_color = color.0;
                 app_state.set(AppState::InGame).unwrap();
             }
             _ => {}
