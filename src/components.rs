@@ -28,7 +28,7 @@ pub struct Decay {
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
 pub struct HitCount {
-    pub ttl: u32,
+    pub ttl: i32,
 }
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
@@ -63,7 +63,7 @@ pub struct Aim {
 pub struct Weapon {
     pub fire_rate: f32,
     pub bullet_speed: f32,
-    pub bullet_ttl: u32,
+    pub bullet_ttl: i32,
     pub bullets: u32,
     pub is_firing: bool,
 }
@@ -94,6 +94,7 @@ pub struct EnemyBundle {
 
 #[derive(Bundle)]
 pub struct BulletBundle {
+    pub bullet: Bullet,
     pub character: CharacterBundle,
     pub hit_count: HitCount,
     pub decay: Decay,

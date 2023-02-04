@@ -1,9 +1,11 @@
+use std::cmp::max;
+
 use bevy::{
     prelude::{
         Camera, Camera2dBundle, Commands, Entity, EventReader, EventWriter, Input, KeyCode,
         MouseButton, OrthographicProjection, Query, Res, Transform, Vec2, Vec3, With, Without,
     },
-    sprite::{Sprite, SpriteBundle},
+    sprite::{collide_aabb::collide, Sprite, SpriteBundle},
     time::{Time, Timer, TimerMode},
     transform,
     utils::default,
@@ -213,6 +215,7 @@ pub fn bullet_spawner(
             let bullet_direction = angle + offset * BULLETS_SPREAD;
             let direction = Vec2::new(bullet_direction.cos(), -bullet_direction.sin());
             commands.spawn(BulletBundle {
+                bullet: Bullet,
                 character: CharacterBundle {
                     in_game: InGame,
                     move_component: Move {
@@ -330,4 +333,27 @@ pub fn despawn_ttl(mut commands: Commands, mut query: Query<(Entity, &HitCount)>
             commands.entity(entity).despawn();
         }
     }
+}
+
+pub fn bullet_hitting_update(
+    mut query_bullets: Query<(&Transform, &Harm, &mut HitCount), (With<Bullet>, Without<Enemy>)>,
+    mut query_enemy: Query<(&Transform, &mut Alive), (With<Enemy>, Without<Bullet>)>,
+) {
+    query_bullets.for_each_mut(|(bullet_transform, bullet_harm, mut hit_count)| {
+        query_enemy.for_each_mut(|(enemy_transform, mut enemy_alive)| {
+            //collide
+            if hit_count.ttl <= 0 {
+                return;
+            }
+            if let Some(_) = collide(
+                bullet_transform.translation,
+                bullet_transform.scale.truncate(),
+                enemy_transform.translation,
+                enemy_transform.scale.truncate(),
+            ) {
+                enemy_alive.health -= bullet_harm.damage;
+                hit_count.ttl -= 1;
+            }
+        });
+    });
 }
