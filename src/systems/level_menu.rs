@@ -141,13 +141,16 @@ fn heredity_layout(
                     LevelMenu,
                 ))
                 .with_children(|background_title| {
-                    background_title.spawn(TextBundle::from_section(
-                        format!("{parent_name}"),
-                        TextStyle {
-                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                            font_size: 20.0,
-                            color: Color::rgb(0.8, 0.8, 0.8),
-                        },
+                    background_title.spawn((
+                        TextBundle::from_section(
+                            format!("{parent_name}"),
+                            TextStyle {
+                                font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                                font_size: 20.0,
+                                color: Color::rgb(0.8, 0.8, 0.8),
+                            },
+                        ),
+                        LevelMenu,
                     ));
                 });
         })
