@@ -1,10 +1,13 @@
 use bevy::{
     prelude::{
-        Camera2dBundle, Color, Commands, Entity, EventReader, EventWriter, Input, KeyCode,
-        MouseButton, OrthographicProjection, Query, Res, Transform, Vec2, Vec3, With,
+        AssetServer, BuildChildren, Button, ButtonBundle, Camera2dBundle, Changed, Children, Color,
+        Commands, Entity, EventReader, EventWriter, Input, KeyCode, MouseButton, NodeBundle,
+        OrthographicProjection, Query, Res, ResMut, State, TextBundle, Transform, Vec2, Vec3, With,
     },
     sprite::{Sprite, SpriteBundle},
+    text::TextStyle,
     time::{Time, Timer, TimerMode},
+    ui::{AlignItems, BackgroundColor, Interaction, JustifyContent, Size, Style, Val},
     utils::default,
     window::Windows,
 };
@@ -12,7 +15,8 @@ use rand::{thread_rng, Rng};
 
 use crate::components::{
     Aim, Alive, BulletBundle, BulletSpawnerTimer, CharacterBundle, Collider, Decay, Enemy,
-    EnemyBundle, Harm, HitCount, MobSpawnerTimer, Move, Player, PlayerBundle, Weapon,
+    EnemyBundle, Harm, HitCount, InGame, MainMenu, MobSpawnerTimer, Move, Player, PlayerBundle,
+    Weapon,
 };
 
 // Player starting stats
@@ -44,12 +48,94 @@ const MOB_DAMAGE: f32 = 1.0;
 const MOB_HEALTH: f32 = 1.0;
 const MOB_SCALE: Vec3 = Vec3::new(15.0, 15.0, 15.0);
 
+// UI
+const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub enum AppState {
+    MainMenu,
+    InGame,
+    Paused,
+}
+
 #[derive(Default)]
 pub struct MobSpawnEvent;
 
-pub fn setup(mut commands: Commands) {
+pub fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
+    // ui camera
+    commands.spawn((Camera2dBundle::default(), MainMenu));
+    commands
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                    align_items: AlignItems::Center,
+                    justify_content: JustifyContent::Center,
+                    ..default()
+                },
+                ..default()
+            },
+            MainMenu,
+        ))
+        .with_children(|parent| {
+            parent
+                .spawn((
+                    ButtonBundle {
+                        style: Style {
+                            size: Size::new(Val::Px(150.0), Val::Px(65.0)),
+                            // horizontally center child text
+                            justify_content: JustifyContent::Center,
+                            // vertically center child text
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                        background_color: NORMAL_BUTTON.into(),
+                        ..default()
+                    },
+                    MainMenu,
+                ))
+                .with_children(|parent| {
+                    parent.spawn((
+                        TextBundle::from_section(
+                            "Start",
+                            TextStyle {
+                                font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                                font_size: 40.0,
+                                color: Color::rgb(0.9, 0.9, 0.9),
+                            },
+                        ),
+                        MainMenu,
+                    ));
+                });
+        });
+}
+
+pub fn clean_main_menu(mut commands: Commands, main_menu_query: Query<Entity, With<MainMenu>>) {
+    for entity in main_menu_query.iter() {
+        commands.entity(entity).despawn();
+    }
+}
+
+pub fn start_button(
+    mut app_state: ResMut<State<AppState>>,
+    mut interaction_query: Query<
+        (&Interaction, &mut BackgroundColor, &Children),
+        (Changed<Interaction>, With<Button>),
+    >,
+) {
+    for (interaction, _, _) in &mut interaction_query {
+        match *interaction {
+            Interaction::Clicked => {
+                app_state.set(AppState::InGame).unwrap();
+            }
+            _ => {}
+        }
+    }
+}
+
+pub fn setup_in_game(mut commands: Commands) {
     // Camera
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn((Camera2dBundle::default(), InGame));
 
     // Spawn player
     commands.spawn(PlayerBundle {
@@ -77,6 +163,7 @@ pub fn setup(mut commands: Commands) {
                 ..default()
             },
             collider: Collider,
+            in_game: InGame,
         },
         player: Player,
         weapon: Weapon {
@@ -98,6 +185,12 @@ pub fn setup(mut commands: Commands) {
         PLAYER_FIRE_RATE,
         TimerMode::Repeating,
     )));
+}
+
+pub fn clean_in_game(mut commands: Commands, in_game_query: Query<Entity, With<InGame>>) {
+    for entity in in_game_query.iter() {
+        commands.entity(entity).despawn();
+    }
 }
 
 //todo, fix the player direction
@@ -210,6 +303,7 @@ pub fn bullet_spawner(
             let direction = Vec2::new(bullet_direction.cos(), -bullet_direction.sin());
             commands.spawn(BulletBundle {
                 character: CharacterBundle {
+                    in_game: InGame,
                     move_component: Move {
                         speed: weapon.bullet_speed,
                         direction: direction,
@@ -274,6 +368,7 @@ pub fn mob_spawner(
     // Spawn
     commands.spawn(EnemyBundle {
         character: CharacterBundle {
+            in_game: InGame,
             move_component: Move {
                 speed: MOB_SPEED,
                 direction: (player.translation - mob_spawn_position)

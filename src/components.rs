@@ -75,6 +75,7 @@ pub struct CharacterBundle {
     pub alive: Alive,
     pub sprite_bundle: SpriteBundle,
     pub collider: Collider,
+    pub in_game: InGame,
 }
 
 #[derive(Bundle)]
@@ -101,3 +102,10 @@ pub struct MobSpawnerTimer(pub Timer);
 
 #[derive(Component, Deref, DerefMut)]
 pub struct BulletSpawnerTimer(pub Timer);
+#[derive(Component, Default, Reflect)]
+#[reflect(Component)]
+pub struct MainMenu;
+
+#[derive(Component, Default, Reflect)]
+#[reflect(Component)]
+pub struct InGame;
