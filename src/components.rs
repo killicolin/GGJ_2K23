@@ -96,6 +96,7 @@ pub struct EnemyBundle {
 pub struct BulletBundle {
     pub character: CharacterBundle,
     pub hit_count: HitCount,
+    pub decay: Decay,
 }
 
 #[derive(Component, Deref, DerefMut)]
