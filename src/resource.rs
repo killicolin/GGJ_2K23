@@ -1,4 +1,7 @@
-use bevy::prelude::Resource;
+use bevy::{
+    audio::AudioSink,
+    prelude::{Handle, Resource},
+};
 
 #[derive(Resource)]
 pub struct TotalToSpawn {
@@ -19,3 +22,11 @@ pub struct TotalKilled {
 pub struct LastShot {
     pub delta_time: f32,
 }
+
+#[derive(Resource)]
+pub struct Score {
+    pub level: u32,
+}
+
+#[derive(Resource)]
+pub struct MusicController(pub Handle<AudioSink>);

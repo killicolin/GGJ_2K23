@@ -1,8 +1,9 @@
 use bevy::{
+    audio::AudioSink,
     prelude::{
-        AssetServer, Assets, Camera2dBundle, Commands, Entity, EventReader, EventWriter, Input,
-        KeyCode, MouseButton, OrthographicProjection, Query, Res, ResMut, State, Transform, Vec2,
-        Vec3, With, Without,
+        AssetServer, Assets, Audio, Camera2dBundle, Commands, Entity, EventReader, EventWriter,
+        Input, KeyCode, MouseButton, OrthographicProjection, Query, Res, ResMut, State, Transform,
+        Vec2, Vec3, With, Without,
     },
     sprite::{
         collide_aabb::collide, Sprite, SpriteBundle, SpriteSheetBundle, TextureAtlas,
@@ -24,7 +25,7 @@ use crate::{
         MOB_COLOR, MOB_DAMAGE, MOB_HEALTH, MOB_SCALE, MOB_SPAWN_RADIUS, MOB_SPEED, PLAYER_AIM,
         PLAYER_DIRECTION, PLAYER_POSITION, PLAYER_SCALE,
     },
-    resource::{LastShot, TotalKilled, TotalSpawned, TotalToSpawn},
+    resource::{LastShot, MusicController, Score, TotalKilled, TotalSpawned, TotalToSpawn},
     AppState, StatsRes,
 };
 
@@ -58,7 +59,19 @@ pub fn setup_in_game(
     stats: Res<StatsRes>,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    score: Res<Score>,
+
+    audio: Res<Audio>,
+    audio_sinks: Res<Assets<AudioSink>>,
 ) {
+    let nb_music = match score.level {
+        s if s < 2 => 0,
+        s if s >= 2 && s < 4 => 1,
+        _ => 2,
+    };
+    let music = asset_server.load(format!("sounds/in_game_{nb_music}.mp3"));
+    let handle = audio_sinks.get_handle(audio.play(music));
+    commands.insert_resource(MusicController(handle));
     // Camera
     commands.spawn((Camera2dBundle::default(), InGame));
     let texture_handle = asset_server.load("images/atlas.png");
@@ -123,6 +136,8 @@ pub fn clean_in_game(
     mut total_spawned: ResMut<TotalSpawned>,
     mut total_to_spawn: ResMut<TotalToSpawn>,
     mut total_killed: ResMut<TotalKilled>,
+    audio_sinks: Res<Assets<AudioSink>>,
+    music_controller: Res<MusicController>,
 ) {
     for entity in in_game_query.iter() {
         commands.entity(entity).despawn();
@@ -130,6 +145,10 @@ pub fn clean_in_game(
     total_killed.amount = 0;
     total_spawned.amount = 0;
     total_to_spawn.amount *= 2;
+    if let Some(sink) = audio_sinks.get(&music_controller.0) {
+        sink.stop();
+    }
+    commands.remove_resource::<MusicController>();
 }
 
 //todo, fix the player direction
@@ -407,10 +426,12 @@ pub fn wave_is_done_emit(
 
 pub fn change_level(
     mut app_state: ResMut<State<AppState>>,
+    mut score: ResMut<Score>,
     wave_done_event: EventReader<WaveDoneEvent>,
 ) {
     if !wave_done_event.is_empty() {
         wave_done_event.clear();
+        score.level += 1;
         app_state.set(AppState::LevelMenu).unwrap();
     }
 }

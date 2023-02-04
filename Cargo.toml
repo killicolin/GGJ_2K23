@@ -14,7 +14,7 @@ opt-level = 1
 opt-level = 3
 
 [dependencies]
-bevy ="0.9.1"
+bevy = {version = "0.9.1", features = ['mp3']}
 bevy_editor_pls = "0.2"
 rand = "0.8"
 

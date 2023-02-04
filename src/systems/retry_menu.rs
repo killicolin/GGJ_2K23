@@ -10,8 +10,8 @@ use bevy::{
     utils::default,
 };
 
-use crate::AppState;
 use crate::{components::RetryMenu, StatsRes};
+use crate::{resource::Score, AppState};
 
 // UI
 const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
@@ -81,11 +81,13 @@ pub fn clean_retry_menu(
     mut commands: Commands,
     retry_menu_query: Query<Entity, With<RetryMenu>>,
     mut stats: ResMut<StatsRes>,
+    mut score: ResMut<Score>,
 ) {
     for entity in retry_menu_query.iter() {
         commands.entity(entity).despawn();
     }
     *stats = StatsRes::default();
+    *score = Score { level: 0 }
 }
 
 pub fn retry_button(

@@ -1,20 +1,29 @@
 use bevy::{
+    audio::AudioSink,
     prelude::{
-        AssetServer, BuildChildren, Button, ButtonBundle, Camera2dBundle, Changed, Children, Color,
-        Commands, Entity, NodeBundle, Query, Res, ResMut, State, TextBundle, With,
+        AssetServer, Assets, Audio, BuildChildren, Button, ButtonBundle, Camera2dBundle, Changed,
+        Children, Color, Commands, Entity, NodeBundle, Query, Res, ResMut, State, TextBundle, With,
     },
     text::TextStyle,
     ui::{AlignItems, BackgroundColor, Interaction, JustifyContent, Size, Style, Val},
     utils::default,
 };
 
-use crate::components::MainMenu;
 use crate::AppState;
+use crate::{components::MainMenu, resource::MusicController};
 
 // UI
 const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
 
-pub fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn setup_main_menu(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    audio: Res<Audio>,
+    audio_sinks: Res<Assets<AudioSink>>,
+) {
+    let music = asset_server.load("sounds/theme.mp3");
+    let handle = audio_sinks.get_handle(audio.play(music));
+    commands.insert_resource(MusicController(handle));
     // ui camera
     commands.spawn((Camera2dBundle::default(), MainMenu));
     commands
@@ -63,10 +72,19 @@ pub fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
         });
 }
 
-pub fn clean_main_menu(mut commands: Commands, main_menu_query: Query<Entity, With<MainMenu>>) {
+pub fn clean_main_menu(
+    mut commands: Commands,
+    main_menu_query: Query<Entity, With<MainMenu>>,
+    audio_sinks: Res<Assets<AudioSink>>,
+    music_controller: Res<MusicController>,
+) {
     for entity in main_menu_query.iter() {
         commands.entity(entity).despawn();
     }
+    if let Some(sink) = audio_sinks.get(&music_controller.0) {
+        sink.stop();
+    }
+    commands.remove_resource::<MusicController>();
 }
 
 pub fn start_button(
