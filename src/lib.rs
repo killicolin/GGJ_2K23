@@ -18,11 +18,11 @@ use constants::{
 use resource::{TotalKilled, TotalSpawned, TotalToSpawn};
 use systems::{
     in_game::{
-        bullet_hitting_update, bullet_spawner, camera_position_update, clean_in_game, decay,
-        despawn_health, despawn_ttl, enemy_direction_update, enemy_hitting_update,
+        bullet_hitting_update, bullet_spawner, camera_position_update, change_level, clean_in_game,
+        decay, despawn_health, despawn_ttl, enemy_direction_update, enemy_hitting_update,
         firing_bullet_emit, key_input_update, manage_mob_spawner_timer, mob_spawner,
         mouse_button_input_update, player_aim_update, setup_in_game, transform_update,
-        MobSpawnEvent, SpawnBulletEvent, WaveDoneEvent,
+        wave_is_done_emit, MobSpawnEvent, SpawnBulletEvent, WaveDoneEvent,
     },
     level_menu::{clean_level_menu, heredity_button, setup_level_menu},
     main_menu::{clean_main_menu, setup_main_menu, start_button},
@@ -81,7 +81,7 @@ pub fn run(width: f32, height: f32) {
     .add_event::<SpawnBulletEvent>()
     .add_event::<MobSpawnEvent>()
     // To change to AppState::MainMenu when loop is finished
-    .add_state(AppState::LevelMenu)
+    .add_state(AppState::MainMenu)
     .init_resource::<StatsRes>()
     .add_event::<WaveDoneEvent>()
     .add_system_set(SystemSet::on_enter(AppState::MainMenu).with_system(setup_main_menu))
@@ -108,7 +108,9 @@ pub fn run(width: f32, height: f32) {
             .with_system(despawn_ttl)
             .with_system(decay)
             .with_system(bullet_hitting_update)
-            .with_system(enemy_hitting_update),
+            .with_system(enemy_hitting_update)
+            .with_system(wave_is_done_emit)
+            .with_system(change_level),
     );
 
     app.register_type::<Alive>();
