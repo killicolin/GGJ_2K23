@@ -2,6 +2,7 @@ use bevy::{
     audio::AudioSink,
     prelude::{Handle, Resource},
 };
+use std::collections::HashMap;
 
 #[derive(Resource)]
 pub struct TotalToSpawn {
@@ -30,3 +31,11 @@ pub struct Score {
 
 #[derive(Resource)]
 pub struct MusicController(pub Handle<AudioSink>);
+pub enum ChunkType {
+    Basic,
+}
+
+#[derive(Resource)]
+pub struct ChunksMap {
+    pub chunks: HashMap<(i32, i32), ChunkType>,
+}
