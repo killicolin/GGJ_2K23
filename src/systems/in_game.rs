@@ -271,8 +271,11 @@ pub fn mob_spawner(
         return;
     }
     mob_spawn_event.clear();
-    let x: f32 = thread_rng().gen_range(-MOB_SPAWN_RADIUS..MOB_SPAWN_RADIUS) as f32;
-    let y: f32 = thread_rng().gen_range(-MOB_SPAWN_RADIUS..MOB_SPAWN_RADIUS) as f32;
+    let angle = (thread_rng().gen_range(0..3600) as f32) / 10.0 * std::f32::consts::PI / 180.0;
+    let (x, y) = (
+        angle.cos() * MOB_SPAWN_RADIUS,
+        -angle.sin() * MOB_SPAWN_RADIUS,
+    );
 
     let player = query.single();
 
