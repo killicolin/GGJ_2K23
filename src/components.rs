@@ -61,6 +61,7 @@ pub struct Aim {
 #[reflect(Component)]
 pub struct Weapon {
     pub fire_rate: f32,
+    pub bullet_speed: f32,
     pub bullet_ttl: u32,
     pub bullets: u32,
     pub is_firing: bool,
@@ -73,7 +74,6 @@ pub struct CharacterBundle {
     pub alive: Alive,
     pub sprite_bundle: SpriteBundle,
     pub collider: Collider,
-    pub aim: Aim,
 }
 
 #[derive(Bundle)]
@@ -81,6 +81,7 @@ pub struct PlayerBundle {
     pub player: Player,
     pub character: CharacterBundle,
     pub weapon: Weapon,
+    pub aim: Aim,
 }
 
 #[derive(Bundle)]
