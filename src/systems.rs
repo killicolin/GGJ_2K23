@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
-        Camera2dBundle, Color, Commands, EventReader, EventWriter, Input, KeyCode, MouseButton,
-        OrthographicProjection, Query, Res, Transform, Vec2, Vec3, With,
+        Camera2dBundle, Color, Commands, Entity, EventReader, EventWriter, Input, KeyCode,
+        MouseButton, OrthographicProjection, Query, Res, Transform, Vec2, Vec3, With,
     },
     sprite::{Sprite, SpriteBundle},
     time::{Time, Timer, TimerMode},
@@ -11,8 +11,8 @@ use bevy::{
 use rand::{thread_rng, Rng};
 
 use crate::components::{
-    Aim, Alive, BulletBundle, BulletSpawnerTimer, CharacterBundle, Collider, Enemy, EnemyBundle,
-    Harm, MobSpawnerTimer, Move, Player, PlayerBundle, Weapon,
+    Aim, Alive, BulletBundle, BulletSpawnerTimer, CharacterBundle, Collider, Decay, Enemy,
+    EnemyBundle, Harm, HitCount, MobSpawnerTimer, Move, Player, PlayerBundle, Weapon,
 };
 
 // Player starting stats
@@ -39,7 +39,7 @@ pub struct SpawnBulletEvent;
 
 const MOB_COLOR: Color = Color::rgb(1.0, 0.0, 0.0);
 const MOB_SPEED: f32 = 90.0;
-const MOB_SPAWN_RADIUS: f32 = 1000.0;
+const MOB_SPAWN_RADIUS: f32 = 2000.0;
 const MOB_DAMAGE: f32 = 1.0;
 const MOB_HEALTH: f32 = 1.0;
 const MOB_SCALE: Vec3 = Vec3::new(15.0, 15.0, 15.0);
@@ -298,4 +298,26 @@ pub fn mob_spawner(
         },
         enemy: Enemy,
     });
+}
+
+pub fn despawn_health(mut commands: Commands, mut query: Query<(Entity, &Alive)>) {
+    for (entity, alive) in query.iter_mut() {
+        if alive.health <= 0.0 {
+            commands.entity(entity).despawn();
+        }
+    }
+}
+
+pub fn decay(mut query: Query<(&Decay, &mut Alive)>) {
+    for (decay, mut alive) in query.iter_mut() {
+        alive.health -= decay.amount;
+    }
+}
+
+pub fn despawn_ttl(mut commands: Commands, mut query: Query<(Entity, &HitCount)>) {
+    for (entity, hit_count) in query.iter_mut() {
+        if hit_count.ttl <= 0 {
+            commands.entity(entity).despawn();
+        }
+    }
 }
