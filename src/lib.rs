@@ -20,12 +20,13 @@ use systems::{
     in_game::{
         bullet_hitting_update, bullet_spawner, camera_position_update, change_level, clean_in_game,
         decay, despawn_health, despawn_ttl, enemy_direction_update, enemy_hitting_update,
-        firing_bullet_emit, key_input_update, manage_mob_spawner_timer, mob_spawner,
+        firing_bullet_emit, game_over, key_input_update, manage_mob_spawner_timer, mob_spawner,
         mouse_button_input_update, player_aim_update, setup_in_game, transform_update,
         wave_is_done_emit, GameOverEvent, MobSpawnEvent, SpawnBulletEvent, WaveDoneEvent,
     },
     level_menu::{clean_level_menu, heredity_button, setup_level_menu},
     main_menu::{clean_main_menu, setup_main_menu, start_button},
+    retry_menu::{clean_retry_menu, retry_button, setup_retry_menu},
 };
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
@@ -33,6 +34,7 @@ pub enum AppState {
     MainMenu,
     InGame,
     Paused,
+    RetryMenu,
     LevelMenu,
 }
 
@@ -88,6 +90,9 @@ pub fn run(width: f32, height: f32) {
     .add_system_set(SystemSet::on_enter(AppState::MainMenu).with_system(setup_main_menu))
     .add_system_set(SystemSet::on_update(AppState::MainMenu).with_system(start_button))
     .add_system_set(SystemSet::on_exit(AppState::MainMenu).with_system(clean_main_menu))
+    .add_system_set(SystemSet::on_enter(AppState::RetryMenu).with_system(setup_retry_menu))
+    .add_system_set(SystemSet::on_update(AppState::RetryMenu).with_system(retry_button))
+    .add_system_set(SystemSet::on_exit(AppState::RetryMenu).with_system(clean_retry_menu))
     .add_system_set(SystemSet::on_enter(AppState::LevelMenu).with_system(setup_level_menu))
     .add_system_set(SystemSet::on_update(AppState::LevelMenu).with_system(heredity_button))
     .add_system_set(SystemSet::on_exit(AppState::LevelMenu).with_system(clean_level_menu))
@@ -111,7 +116,8 @@ pub fn run(width: f32, height: f32) {
             .with_system(bullet_hitting_update)
             .with_system(enemy_hitting_update)
             .with_system(wave_is_done_emit)
-            .with_system(change_level),
+            .with_system(change_level)
+            .with_system(game_over),
     );
 
     app.register_type::<Alive>();

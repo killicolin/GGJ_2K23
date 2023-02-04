@@ -123,6 +123,10 @@ pub struct LevelMenu;
 
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
+pub struct RetryMenu;
+
+#[derive(Component, Default, Reflect)]
+#[reflect(Component)]
 pub struct PlayerColor(pub Color);
 
 #[derive(Component, Clone)]

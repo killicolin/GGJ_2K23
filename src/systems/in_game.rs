@@ -373,6 +373,16 @@ pub fn change_level(
     }
 }
 
+pub fn game_over(
+    mut app_state: ResMut<State<AppState>>,
+    game_over_event_emitter: EventReader<GameOverEvent>,
+) {
+    if !game_over_event_emitter.is_empty() {
+        game_over_event_emitter.clear();
+        app_state.set(AppState::RetryMenu).unwrap();
+    }
+}
+
 pub fn decay(mut query: Query<(&Decay, &mut Alive)>) {
     for (decay, mut alive) in query.iter_mut() {
         alive.health -= decay.amount;
