@@ -5,7 +5,7 @@ use bevy::{
 };
 
 use crate::components::{
-    Alive, CharacterBundle, Collider, Harm, Move, Orientated, Player, PlayerBundle, Weapon,
+    Aim, Alive, CharacterBundle, Collider, Harm, Move, Player, PlayerBundle, Weapon,
 };
 
 // Player starting stats
@@ -15,7 +15,7 @@ const PLAYER_DAMAGE: f32 = 1.0;
 const PLAYER_HEALTH: f32 = 1.0;
 const PLAYER_POSITION: Vec3 = Vec3::new(0.0, 0.0, 0.0);
 const PLAYER_SCALE: Vec3 = Vec3::new(10.0, 10.0, 10.0);
-const PLAYER_ORIENTATION: Vec2 = Vec2 { x: 1.0, y: 1.0 };
+const PLAYER_AIM: Vec2 = Vec2 { x: 1.0, y: 1.0 };
 const PLAYER_COLOR: Color = Color::rgb(0.3, 0.3, 0.7);
 const PLAYER_FIRE_RATE: f32 = 1.0;
 const PLAYER_BULLETS_TTL: u32 = 1;
@@ -51,8 +51,8 @@ pub fn setup(mut commands: Commands) {
                 ..default()
             },
             collider: Collider,
-            orientated: Orientated {
-                direction: PLAYER_ORIENTATION,
+            orientated: Aim {
+                direction: PLAYER_AIM,
             },
         },
         player: Player,

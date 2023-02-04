@@ -42,7 +42,7 @@ pub struct Enemy;
 pub struct Bullet;
 
 #[derive(Component)]
-pub struct Orientated {
+pub struct Aim {
     pub direction: Vec2,
 }
 
@@ -61,7 +61,7 @@ pub struct CharacterBundle {
     pub alive: Alive,
     pub sprite_bundle: SpriteBundle,
     pub collider: Collider,
-    pub orientated: Orientated,
+    pub aim: Aim,
 }
 
 #[derive(Bundle)]
