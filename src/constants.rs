@@ -29,4 +29,4 @@ pub const MOB_SPAWN_RADIUS: f32 = 700.0;
 pub const MOB_DAMAGE: f32 = 1.0;
 pub const MOB_HEALTH: f32 = 1.0;
 pub const MOB_SCALE: Vec3 = Vec3::new(0.5, 0.5, 0.5);
-pub const MOB_MAX_SPAWN_PER_WAVE: u32 = 50;
+pub const MOB_MAX_SPAWN_PER_WAVE: u32 = 5;

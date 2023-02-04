@@ -1,8 +1,8 @@
 use bevy::{
     prelude::{
         AssetServer, Camera2dBundle, Commands, Entity, EventReader, EventWriter, Input, KeyCode,
-        MouseButton, OrthographicProjection, Query, Res, ResMut, Transform, Vec2, Vec3, With,
-        Without,
+        MouseButton, OrthographicProjection, Query, Res, ResMut, State, Transform, Vec2, Vec3,
+        With, Without,
     },
     sprite::{collide_aabb::collide, Sprite, SpriteBundle},
     time::{Time, Timer, TimerMode},
@@ -23,7 +23,7 @@ use crate::{
         PLAYER_DIRECTION, PLAYER_FIRE_RATE, PLAYER_POSITION, PLAYER_SCALE,
     },
     resource::{TotalKilled, TotalSpawned, TotalToSpawn},
-    StatsRes,
+    AppState, StatsRes,
 };
 
 pub struct SpawnBulletEvent;
@@ -78,20 +78,29 @@ pub fn setup_in_game(mut commands: Commands, stats: Res<StatsRes>, asset_server:
             direction: PLAYER_AIM,
         },
     });
-    commands.spawn(MobSpawnerTimer(Timer::from_seconds(
-        1.0,
-        TimerMode::Repeating,
-    )));
-    commands.spawn(BulletSpawnerTimer(Timer::from_seconds(
-        PLAYER_FIRE_RATE,
-        TimerMode::Repeating,
-    )));
+    commands.spawn((
+        MobSpawnerTimer(Timer::from_seconds(1.0, TimerMode::Repeating)),
+        InGame,
+    ));
+    commands.spawn((
+        BulletSpawnerTimer(Timer::from_seconds(PLAYER_FIRE_RATE, TimerMode::Repeating)),
+        InGame,
+    ));
 }
 
-pub fn clean_in_game(mut commands: Commands, in_game_query: Query<Entity, With<InGame>>) {
+pub fn clean_in_game(
+    mut commands: Commands,
+    in_game_query: Query<Entity, With<InGame>>,
+    mut total_spawned: ResMut<TotalSpawned>,
+    mut total_to_spawn: ResMut<TotalToSpawn>,
+    mut total_killed: ResMut<TotalKilled>,
+) {
     for entity in in_game_query.iter() {
         commands.entity(entity).despawn();
     }
+    total_killed.amount = 0;
+    total_spawned.amount = 0;
+    total_to_spawn.amount *= 2;
 }
 
 //todo, fix the player direction
@@ -328,10 +337,10 @@ pub fn despawn_health(
     mut total_killed: ResMut<TotalKilled>,
 ) {
     for (entity, alive, maybe_enemy) in query.iter_mut() {
-        if maybe_enemy.is_some() {
-            total_killed.amount += 1;
-        }
         if alive.health <= 0.0 {
+            if maybe_enemy.is_some() {
+                total_killed.amount += 1;
+            }
             commands.entity(entity).despawn();
         }
     }
@@ -344,6 +353,16 @@ pub fn wave_is_done_emit(
 ) {
     if total_killed.amount >= total_to_spawn.amount {
         wave_done_event.send(WaveDoneEvent);
+    }
+}
+
+pub fn change_level(
+    mut app_state: ResMut<State<AppState>>,
+    wave_done_event: EventReader<WaveDoneEvent>,
+) {
+    if !wave_done_event.is_empty() {
+        wave_done_event.clear();
+        app_state.set(AppState::LevelMenu).unwrap();
     }
 }
 
@@ -375,7 +394,7 @@ pub fn bullet_hitting_update(
                 bullet_transform.translation,
                 bullet_transform.scale.truncate(),
                 enemy_transform.translation,
-                enemy_transform.scale.truncate(),
+                enemy_transform.scale.truncate() * 32.0,
             ) {
                 enemy_alive.health -= bullet_harm.damage;
                 hit_count.ttl -= 1;
@@ -397,9 +416,9 @@ pub fn enemy_hitting_update(
         if enemy_life.health > 0.0 {
             if let Some(_) = collide(
                 player_transform.translation,
-                player_transform.scale.truncate(),
+                player_transform.scale.truncate() * 32.0,
                 enemy_transform.translation,
-                enemy_transform.scale.truncate(),
+                enemy_transform.scale.truncate() * 32.0,
             ) {
                 player_life.health -= enemy_harm.damage;
             }
