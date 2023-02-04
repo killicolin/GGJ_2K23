@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
-        Camera2dBundle, Commands, Entity, EventReader, EventWriter, Input, KeyCode, MouseButton,
-        OrthographicProjection, Query, Res, Transform, Vec2, Vec3, With, Without,
+        AssetServer, Camera2dBundle, Commands, Entity, EventReader, EventWriter, Input, KeyCode,
+        MouseButton, OrthographicProjection, Query, Res, Transform, Vec2, Vec3, With, Without,
     },
     sprite::{collide_aabb::collide, Sprite, SpriteBundle},
     time::{Time, Timer, TimerMode},
@@ -19,10 +19,9 @@ use crate::{
     constants::{
         BULLETS_COLOR, BULLETS_DECAYS, BULLETS_SCALE, BULLETS_SPREAD, BULLET_HEALTH, BULLET_TTL,
         MOB_COLOR, MOB_DAMAGE, MOB_HEALTH, MOB_SCALE, MOB_SPAWN_RADIUS, MOB_SPEED, PLAYER_AIM,
-        PLAYER_BULLETS, PLAYER_BULLETS_SPEED, PLAYER_BULLETS_TTL, PLAYER_COLOR, PLAYER_DAMAGE,
-        PLAYER_DIRECTION, PLAYER_FIRE_RATE, PLAYER_HEALTH, PLAYER_POSITION, PLAYER_SCALE,
-        PLAYER_SPEED,
+        PLAYER_COLOR, PLAYER_DIRECTION, PLAYER_FIRE_RATE, PLAYER_POSITION, PLAYER_SCALE,
     },
+    StatsRes,
 };
 
 pub struct SpawnBulletEvent;
@@ -30,7 +29,7 @@ pub struct SpawnBulletEvent;
 #[derive(Default)]
 pub struct MobSpawnEvent;
 
-pub fn setup_in_game(mut commands: Commands) {
+pub fn setup_in_game(mut commands: Commands, stats: Res<StatsRes>, asset_server: Res<AssetServer>) {
     // Camera
     commands.spawn((Camera2dBundle::default(), InGame));
 
@@ -38,14 +37,14 @@ pub fn setup_in_game(mut commands: Commands) {
     commands.spawn(PlayerBundle {
         character: CharacterBundle {
             move_component: Move {
-                speed: PLAYER_SPEED,
+                speed: stats.player_speed,
                 direction: PLAYER_DIRECTION,
             },
             harm: Harm {
-                damage: PLAYER_DAMAGE,
+                damage: stats.player_damage,
             },
             alive: Alive {
-                health: PLAYER_HEALTH,
+                health: stats.player_health,
             },
             sprite_bundle: SpriteBundle {
                 transform: Transform {
@@ -57,6 +56,7 @@ pub fn setup_in_game(mut commands: Commands) {
                     color: PLAYER_COLOR,
                     ..default()
                 },
+                texture: asset_server.load("images/sprite.png"),
                 ..default()
             },
             collider: Collider,
@@ -64,10 +64,10 @@ pub fn setup_in_game(mut commands: Commands) {
         },
         player: Player,
         weapon: Weapon {
-            fire_rate: PLAYER_FIRE_RATE,
-            bullet_ttl: PLAYER_BULLETS_TTL,
-            bullet_speed: PLAYER_BULLETS_SPEED,
-            bullets: PLAYER_BULLETS,
+            fire_rate: stats.player_fire_rate,
+            bullet_ttl: stats.player_bullets_ttl,
+            bullet_speed: stats.player_bullets_speed,
+            bullets: stats.player_bullets,
             is_firing: false,
         },
         aim: Aim {

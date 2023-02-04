@@ -3,20 +3,62 @@ mod constants;
 mod systems;
 
 use bevy::{
-    prelude::{default, App, PluginGroup, SystemSet},
+    prelude::{default, App, PluginGroup, Resource, SystemSet},
     window::{PresentMode, WindowDescriptor, WindowPlugin},
     DefaultPlugins,
 };
 use bevy_editor_pls::EditorPlugin;
 use components::{Aim, Alive, Decay, HitCount, Move, Weapon};
-use systems::in_game::{
-    bullet_hitting_update, bullet_spawner, camera_position_update, clean_in_game, decay,
-    despawn_health, despawn_ttl, enemy_direction_update, enemy_hitting_update, firing_bullet_emit,
-    key_input_update, manage_mob_spawner_timer, mob_spawner, mouse_button_input_update,
-    player_aim_update, setup_in_game, transform_update, MobSpawnEvent, SpawnBulletEvent,
+use constants::{
+    PLAYER_BULLETS, PLAYER_BULLETS_SPEED, PLAYER_BULLETS_TTL, PLAYER_DAMAGE, PLAYER_FIRE_RATE,
+    PLAYER_HEALTH, PLAYER_SPEED,
 };
-use systems::main_menu::{clean_main_menu, setup_main_menu, start_button, AppState};
+use systems::{
+    in_game::{
+        bullet_hitting_update, bullet_spawner, camera_position_update, clean_in_game, decay,
+        despawn_health, despawn_ttl, enemy_direction_update, enemy_hitting_update,
+        firing_bullet_emit, key_input_update, manage_mob_spawner_timer, mob_spawner,
+        mouse_button_input_update, player_aim_update, setup_in_game, transform_update,
+        MobSpawnEvent, SpawnBulletEvent,
+    },
+    level_menu::{heredity_button, setup_level_menu},
+};
+use systems::{
+    level_menu::clean_level_menu,
+    main_menu::{clean_main_menu, setup_main_menu, start_button},
+};
 
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub enum AppState {
+    MainMenu,
+    InGame,
+    Paused,
+    LevelMenu,
+}
+
+#[derive(Resource)]
+pub struct StatsRes {
+    pub player_speed: f32,
+    pub player_damage: f32,
+    pub player_health: f32,
+    pub player_fire_rate: f32,
+    pub player_bullets: u32,
+    pub player_bullets_ttl: i32,
+    pub player_bullets_speed: f32,
+}
+impl Default for StatsRes {
+    fn default() -> Self {
+        StatsRes {
+            player_speed: PLAYER_SPEED,
+            player_damage: PLAYER_DAMAGE,
+            player_health: PLAYER_HEALTH,
+            player_fire_rate: PLAYER_FIRE_RATE,
+            player_bullets: PLAYER_BULLETS,
+            player_bullets_ttl: PLAYER_BULLETS_TTL,
+            player_bullets_speed: PLAYER_BULLETS_SPEED,
+        }
+    }
+}
 pub fn run(width: f32, height: f32) {
     let mut app = App::new();
     app.add_plugins(DefaultPlugins.set(WindowPlugin {
@@ -31,10 +73,15 @@ pub fn run(width: f32, height: f32) {
     }))
     .add_event::<SpawnBulletEvent>()
     .add_event::<MobSpawnEvent>()
-    .add_state(AppState::MainMenu)
+    // To change to AppState::MainMenu when loop is finished
+    .add_state(AppState::LevelMenu)
+    .init_resource::<StatsRes>()
     .add_system_set(SystemSet::on_enter(AppState::MainMenu).with_system(setup_main_menu))
     .add_system_set(SystemSet::on_update(AppState::MainMenu).with_system(start_button))
     .add_system_set(SystemSet::on_exit(AppState::MainMenu).with_system(clean_main_menu))
+    .add_system_set(SystemSet::on_enter(AppState::LevelMenu).with_system(setup_level_menu))
+    .add_system_set(SystemSet::on_update(AppState::LevelMenu).with_system(heredity_button))
+    .add_system_set(SystemSet::on_exit(AppState::LevelMenu).with_system(clean_level_menu))
     .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup_in_game))
     .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(clean_in_game))
     .add_system_set(
