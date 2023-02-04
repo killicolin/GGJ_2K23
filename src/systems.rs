@@ -4,18 +4,20 @@ use bevy::{
         Query, Res, Transform, Vec2, Vec3, With,
     },
     sprite::{Sprite, SpriteBundle},
-    time::Time,
+    time::{Time, Timer, TimerMode},
     utils::default,
     window::Windows,
 };
+use rand::{thread_rng, Rng};
 
 use crate::components::{
-    Aim, Alive, BulletBundle, CharacterBundle, Collider, Harm, Move, Player, PlayerBundle, Weapon,
+    Aim, Alive, BulletBundle, CharacterBundle, Collider, Enemy, EnemyBundle, Harm, MobSpawnerTimer,
+    Move, Player, PlayerBundle, Weapon,
 };
 
 // Player starting stats
 const PLAYER_DIRECTION: Vec2 = Vec2 { x: 1.0, y: 1.0 };
-const PLAYER_SPEED: f32 = 20.0;
+const PLAYER_SPEED: f32 = 100.0;
 const PLAYER_DAMAGE: f32 = 1.0;
 const PLAYER_HEALTH: f32 = 1.0;
 const PLAYER_POSITION: Vec3 = Vec3::new(0.0, 0.0, 0.0);
@@ -34,6 +36,16 @@ const BULLETS_COLOR: Color = Color::rgb(0.8, 0.8, 0.4);
 const BULLETS_SPREAD: f32 = 5.0 * std::f32::consts::PI / 180.0;
 
 pub struct SpawnBulletEvent;
+
+const MOB_COLOR: Color = Color::rgb(1.0, 0.0, 0.0);
+const MOB_SPEED: f32 = 90.0;
+const MOB_SPAWN_RADIUS: f32 = 1000.0;
+const MOB_DAMAGE: f32 = 1.0;
+const MOB_HEALTH: f32 = 1.0;
+const MOB_SCALE: Vec3 = Vec3::new(15.0, 15.0, 15.0);
+
+#[derive(Default)]
+pub struct MobSpawnEvent;
 
 pub fn setup(mut commands: Commands) {
     // Camera
@@ -78,6 +90,10 @@ pub fn setup(mut commands: Commands) {
             direction: PLAYER_AIM,
         },
     });
+    commands.spawn(MobSpawnerTimer(Timer::from_seconds(
+        1.0,
+        TimerMode::Repeating,
+    )));
 }
 
 //todo, fix the player direction
@@ -192,4 +208,65 @@ pub fn bullet_spawner(
             });
         }
     }
+}
+
+// Spawn a mob event every seconds
+pub fn manage_mob_spawner_timer(
+    time: Res<Time>,
+    mut query: Query<&mut MobSpawnerTimer>,
+    mut mob_spawn_event: EventWriter<MobSpawnEvent>,
+) {
+    let mut timer = query.single_mut();
+    if timer.tick(time.delta()).just_finished() {
+        mob_spawn_event.send(MobSpawnEvent);
+    }
+}
+
+// Spawn the mob facing towards the player
+pub fn mob_spawner(
+    mut commands: Commands,
+    query: Query<&Transform, With<Player>>,
+    mob_spawn_event: EventReader<MobSpawnEvent>,
+) {
+    if mob_spawn_event.is_empty() {
+        return;
+    }
+    mob_spawn_event.clear();
+    let x: f32 = thread_rng().gen_range(-MOB_SPAWN_RADIUS..MOB_SPAWN_RADIUS) as f32;
+    let y: f32 = thread_rng().gen_range(-MOB_SPAWN_RADIUS..MOB_SPAWN_RADIUS) as f32;
+
+    let player = query.single();
+
+    let mob_spawn_position = Vec3 {
+        x: player.translation.x + x,
+        y: player.translation.y + y,
+        z: player.translation.z,
+    };
+    // Spawn
+    commands.spawn(EnemyBundle {
+        character: CharacterBundle {
+            move_component: Move {
+                speed: MOB_SPEED,
+                direction: (player.translation - mob_spawn_position)
+                    .truncate()
+                    .normalize(),
+            },
+            harm: Harm { damage: MOB_DAMAGE },
+            alive: Alive { health: MOB_HEALTH },
+            sprite_bundle: SpriteBundle {
+                transform: Transform {
+                    translation: mob_spawn_position,
+                    scale: MOB_SCALE,
+                    ..default()
+                },
+                sprite: Sprite {
+                    color: MOB_COLOR,
+                    ..default()
+                },
+                ..default()
+            },
+            collider: Collider,
+        },
+        enemy: Enemy,
+    });
 }

@@ -1,8 +1,9 @@
 use bevy::{
     ecs::component::Component,
-    prelude::{Bundle, ReflectComponent, Vec2},
+    prelude::{Bundle, Deref, DerefMut, ReflectComponent, Vec2},
     reflect::Reflect,
     sprite::SpriteBundle,
+    time::Timer,
 };
 
 #[derive(Component, Default, Reflect)]
@@ -94,3 +95,6 @@ pub struct EnemyBundle {
 pub struct BulletBundle {
     pub character: CharacterBundle,
 }
+
+#[derive(Component, Deref, DerefMut)]
+pub struct MobSpawnerTimer(pub Timer);
