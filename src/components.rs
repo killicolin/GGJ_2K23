@@ -216,12 +216,12 @@ impl Display for Debuff {
 impl Display for DebufChoices {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            DebufChoices::Speed => write!(f, "- speed"),
-            DebufChoices::Bullets => write!(f, "- nb of bullets"),
-            DebufChoices::BulletsTtl => write!(f, "- bullets hitcount"),
-            DebufChoices::Damage => write!(f, "- damage"),
-            DebufChoices::BulletsSpeed => write!(f, "- bullets speed"),
-            DebufChoices::FireRate => write!(f, "- fire rate"),
+            DebufChoices::Speed => write!(f, "Player speed: -20% "),
+            DebufChoices::Bullets => write!(f, "Bullets: -50%"),
+            DebufChoices::BulletsTtl => write!(f, "Piercing shot: -50%"),
+            DebufChoices::Damage => write!(f, "Damage: -30%"),
+            DebufChoices::BulletsSpeed => write!(f, "Bullets speed: -40%"),
+            DebufChoices::FireRate => write!(f, "Fire rate : +30%"),
         }
     }
 }

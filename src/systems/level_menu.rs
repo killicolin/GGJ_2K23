@@ -1,3 +1,5 @@
+use std::cmp::max;
+
 use bevy::{
     prelude::{
         AssetServer, BuildChildren, Button, ButtonBundle, Camera2dBundle, Changed, ChildBuilder,
@@ -372,12 +374,16 @@ pub fn heredity_button(
                     .get_defaults()
                     .iter()
                     .for_each(|debuff_choice| match debuff_choice {
-                        DebufChoices::Speed => stats.player_speed /= 2.0,
-                        DebufChoices::Bullets => stats.player_bullets /= 2,
-                        DebufChoices::BulletsTtl => stats.player_bullets_ttl /= 2,
-                        DebufChoices::Damage => stats.player_damage /= 2.0,
-                        DebufChoices::BulletsSpeed => stats.player_bullets_speed /= 2.0,
-                        DebufChoices::FireRate => stats.player_fire_rate /= 2.0,
+                        DebufChoices::Speed => stats.player_speed *= 0.8,
+                        DebufChoices::Bullets => {
+                            stats.player_bullets = max(stats.player_bullets / 2, 1)
+                        }
+                        DebufChoices::BulletsTtl => {
+                            stats.player_bullets_ttl = max(stats.player_bullets_ttl / 2, 1)
+                        }
+                        DebufChoices::Damage => stats.player_damage *= 0.7,
+                        DebufChoices::BulletsSpeed => stats.player_bullets_speed *= 0.6,
+                        DebufChoices::FireRate => stats.player_fire_rate *= 1.3,
                     });
                 stats.player_color = color.0;
                 app_state.set(AppState::InGame).unwrap();
