@@ -33,7 +33,14 @@ pub const MOB_SPAWN_RADIUS: f32 = 700.0;
 pub const MOB_DAMAGE: f32 = 1.0;
 pub const MOB_HEALTH: f32 = 1.0;
 pub const MOB_SCALE: Vec3 = Vec3::new(1.0, 1.0, 1.0);
-pub const MOB_MAX_SPAWN_PER_WAVE: u32 = 5;
+
+//Spawning
+
+pub const MAX_WAVE_CALIBRATION: u32 = 9;
+pub const ENEMY_BY_LVL: [u32; 10] = [25, 50, 75, 100, 150, 200, 400, 800, 1200, 1600];
+pub const SPEED_SPAWN_BY_LVL: [f32; 10] =
+    [0.83, 0.83, 0.83, 0.83, 0.83, 0.83, 0.83, 0.83, 0.83, 0.83];
+pub const SPAWN_TICK_BY_LVL: [u32; 10] = [1, 1, 2, 2, 2, 3, 3, 3, 3, 4];
 
 // Score parameter
 pub const BEGIN_DATE: i32 = 2100;

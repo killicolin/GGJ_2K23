@@ -11,7 +11,6 @@ use bevy::{
 use bevy_editor_pls::EditorPlugin;
 use bevy_kira_audio::AudioPlugin;
 use components::{Aim, Alive, Decay, HitCount, Move, Weapon};
-use constants::MOB_MAX_SPAWN_PER_WAVE;
 use constants::{
     PLAYER_BULLETS, PLAYER_BULLETS_SPEED, PLAYER_BULLETS_TTL, PLAYER_COLOR, PLAYER_DAMAGE,
     PLAYER_FIRE_RATE, PLAYER_HEALTH, PLAYER_SPEED,
@@ -83,9 +82,7 @@ pub fn run(width: f32, height: f32) {
         ..default()
     }))
     .add_plugin(AudioPlugin)
-    .insert_resource(TotalToSpawn {
-        amount: MOB_MAX_SPAWN_PER_WAVE,
-    })
+    .insert_resource(TotalToSpawn::default())
     .insert_resource(TotalSpawned::default())
     .insert_resource(TotalKilled::default())
     .insert_resource(LastShot::default())

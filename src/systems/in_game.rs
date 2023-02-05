@@ -1,3 +1,5 @@
+use std::cmp::{max, min};
+
 use bevy::{
     prelude::{
         AssetServer, Assets, Camera2dBundle, Color, Commands, Entity, EventReader, EventWriter,
@@ -23,7 +25,7 @@ use crate::{
     constants::{
         BULLETS_COLOR, BULLETS_DECAYS, BULLETS_SCALE, BULLETS_SPREAD, BULLET_HEALTH, BULLET_TTL,
         MOB_COLOR, MOB_COLOR_HURT, MOB_DAMAGE, MOB_HEALTH, MOB_SCALE, MOB_SPAWN_RADIUS, MOB_SPEED,
-        PLAYER_AIM, PLAYER_DIRECTION, PLAYER_POSITION, PLAYER_SCALE,
+        PLAYER_AIM, PLAYER_DIRECTION, PLAYER_POSITION, PLAYER_SCALE, SPEED_SPAWN_BY_LVL,
     },
     resource::{ChunkType, ChunksMap, LastShot, Score, TotalKilled, TotalSpawned, TotalToSpawn},
     AppState, StatsRes,
@@ -134,7 +136,10 @@ pub fn setup_in_game(
         AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
     ));
     commands.spawn((
-        MobSpawnerTimer(Timer::from_seconds(1.0, TimerMode::Repeating)),
+        MobSpawnerTimer(Timer::from_seconds(
+            SPEED_SPAWN_BY_LVL[0],
+            TimerMode::Repeating,
+        )),
         InGame,
     ));
 }
@@ -142,17 +147,11 @@ pub fn setup_in_game(
 pub fn clean_in_game(
     mut commands: Commands,
     in_game_query: Query<Entity, With<InGame>>,
-    mut total_spawned: ResMut<TotalSpawned>,
-    mut total_to_spawn: ResMut<TotalToSpawn>,
-    mut total_killed: ResMut<TotalKilled>,
     audio: Res<Audio>,
 ) {
     for entity in in_game_query.iter() {
         commands.entity(entity).despawn();
     }
-    total_killed.amount = 0;
-    total_spawned.amount = 0;
-    total_to_spawn.amount *= 2;
     audio.stop();
 }
 
@@ -451,40 +450,43 @@ pub fn mob_spawner(
         z: player.translation.z,
     };
     // Spawn
-    commands.spawn((
-        EnemyBundle {
-            character: CharacterBundle {
-                in_game: InGame,
-                move_component: Move {
-                    speed: MOB_SPEED,
-                    direction: (player.translation - mob_spawn_position)
-                        .truncate()
-                        .normalize(),
+    for _ in 0..to_spawn.quantity_per_spawn {
+        if to_spawn.amount > spawned.amount {
+            commands.spawn((
+                EnemyBundle {
+                    character: CharacterBundle {
+                        in_game: InGame,
+                        move_component: Move {
+                            speed: MOB_SPEED,
+                            direction: (player.translation - mob_spawn_position)
+                                .truncate()
+                                .normalize(),
+                        },
+                        harm: Harm { damage: MOB_DAMAGE },
+                        alive: Alive { health: MOB_HEALTH },
+                        collider: Collider,
+                    },
+                    sprite_bundle: SpriteSheetBundle {
+                        transform: Transform {
+                            translation: mob_spawn_position,
+                            scale: MOB_SCALE,
+                            ..default()
+                        },
+                        sprite: TextureAtlasSprite {
+                            color: MOB_COLOR,
+                            index: 0,
+                            ..default()
+                        },
+                        texture_atlas: texture_atlas_handle.clone(),
+                        ..default()
+                    },
+                    enemy: Enemy,
                 },
-                harm: Harm { damage: MOB_DAMAGE },
-                alive: Alive { health: MOB_HEALTH },
-                collider: Collider,
-            },
-            sprite_bundle: SpriteSheetBundle {
-                transform: Transform {
-                    translation: mob_spawn_position,
-                    scale: MOB_SCALE,
-                    ..default()
-                },
-                sprite: TextureAtlasSprite {
-                    color: MOB_COLOR,
-                    index: 0,
-                    ..default()
-                },
-                texture_atlas: texture_atlas_handle,
-                ..default()
-            },
-            enemy: Enemy,
-        },
-        AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
-    ));
-
-    spawned.amount += 1;
+                AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+            ));
+            spawned.amount += 1;
+        }
+    }
 }
 
 pub fn despawn_health(
@@ -521,10 +523,19 @@ pub fn change_level(
     mut app_state: ResMut<State<AppState>>,
     mut score: ResMut<Score>,
     wave_done_event: EventReader<WaveDoneEvent>,
+    mut total_spawned: ResMut<TotalSpawned>,
+    mut total_to_spawn: ResMut<TotalToSpawn>,
+    mut total_killed: ResMut<TotalKilled>,
+    mut quey_timer_spawner: Query<&mut MobSpawnerTimer>,
 ) {
     if !wave_done_event.is_empty() {
         wave_done_event.clear();
         score.level_up();
+        let mut timer_spawner = quey_timer_spawner.single_mut();
+        timer_spawner.0 = Timer::from_seconds(total_to_spawn.rate, TimerMode::Repeating);
+        total_killed.amount = 0;
+        total_spawned.amount = 0;
+        total_to_spawn.update_paramter_for_level_id(score.get_level_index());
         app_state.set(AppState::LevelMenu).unwrap();
     }
 }
