@@ -25,7 +25,9 @@ use systems::{
         setup_in_game, transform_update, wave_is_done_emit, GameOverEvent, MobSpawnEvent,
         SpawnBulletEvent, WaveDoneEvent,
     },
-    level_menu::{clean_level_menu, down_pannel, heredity_button, setup_level_menu},
+    level_menu::{
+        clean_level_menu, decrement_date, down_pannel, heredity_button, setup_level_menu,
+    },
     main_menu::{clean_main_menu, setup_main_menu, start_button},
     retry_menu::{clean_retry_menu, retry_button, setup_retry_menu},
 };
@@ -82,7 +84,7 @@ pub fn run(width: f32, height: f32) {
     .insert_resource(TotalSpawned::default())
     .insert_resource(TotalKilled::default())
     .insert_resource(LastShot::default())
-    .insert_resource(Score { level: 0 })
+    .insert_resource(Score::default())
     .add_event::<SpawnBulletEvent>()
     .add_event::<MobSpawnEvent>()
     .add_event::<GameOverEvent>()
@@ -100,7 +102,8 @@ pub fn run(width: f32, height: f32) {
     .add_system_set(
         SystemSet::on_update(AppState::LevelMenu)
             .with_system(heredity_button)
-            .with_system(down_pannel),
+            .with_system(down_pannel)
+            .with_system(decrement_date),
     )
     .add_system_set(SystemSet::on_exit(AppState::LevelMenu).with_system(clean_level_menu))
     .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup_in_game))

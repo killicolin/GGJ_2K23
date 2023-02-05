@@ -31,4 +31,8 @@ pub const MOB_SPAWN_RADIUS: f32 = 700.0;
 pub const MOB_DAMAGE: f32 = 1.0;
 pub const MOB_HEALTH: f32 = 1.0;
 pub const MOB_SCALE: Vec3 = Vec3::new(1.0, 1.0, 1.0);
-pub const MOB_MAX_SPAWN_PER_WAVE: u32 = 0;
+pub const MOB_MAX_SPAWN_PER_WAVE: u32 = 5;
+
+// Score parameter
+pub const BEGIN_DATE: i32 = 2100;
+pub const DECREMENT_DATE_PER_LEVEL: i32 = 35;

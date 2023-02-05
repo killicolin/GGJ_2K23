@@ -122,6 +122,10 @@ pub struct LevelMenu;
 
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
+pub struct DateText;
+
+#[derive(Component, Default, Reflect)]
+#[reflect(Component)]
 pub struct LevelMenuPannel;
 
 #[derive(Component, Default, Reflect)]

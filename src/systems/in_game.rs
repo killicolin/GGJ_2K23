@@ -79,11 +79,7 @@ pub fn setup_in_game(
     audio: Res<Audio>,
     audio_sinks: Res<Assets<AudioSink>>,
 ) {
-    let nb_music = match score.level {
-        s if s < 2 => 0,
-        s if s >= 2 && s < 4 => 1,
-        _ => 2,
-    };
+    let nb_music = score.historic_period_theme();
     let music = asset_server.load(format!("sounds/in_game_{nb_music}.ogg"));
     let handle = audio_sinks.get_handle(audio.play(music));
     commands.insert_resource(MusicController(handle));
@@ -446,7 +442,7 @@ pub fn change_level(
 ) {
     if !wave_done_event.is_empty() {
         wave_done_event.clear();
-        score.level += 1;
+        score.level_up();
         app_state.set(AppState::LevelMenu).unwrap();
     }
 }

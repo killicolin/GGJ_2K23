@@ -87,7 +87,7 @@ pub fn clean_retry_menu(
         commands.entity(entity).despawn();
     }
     *stats = StatsRes::default();
-    *score = Score { level: 0 }
+    *score = Score::default();
 }
 
 pub fn retry_button(

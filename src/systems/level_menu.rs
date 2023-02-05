@@ -3,7 +3,7 @@ use bevy::{
         AssetServer, BuildChildren, Button, ButtonBundle, Camera2dBundle, Changed, ChildBuilder,
         Children, Color, Commands, Entity, NodeBundle, Query, Res, ResMut, State, TextBundle, With,
     },
-    text::TextStyle,
+    text::{Text, TextStyle},
     time::Time,
     ui::{
         AlignItems, AlignSelf, BackgroundColor, FlexDirection, Interaction, JustifyContent,
@@ -14,8 +14,9 @@ use bevy::{
 use rand::{thread_rng, Rng};
 
 use crate::{
-    components::{DebufChoices, LevelMenu, LevelMenuPannel},
-    constants::LORE_PARENT_CHOICE,
+    components::{DateText, DebufChoices, LevelMenu, LevelMenuPannel},
+    constants::{BEGIN_DATE, LORE_PARENT_CHOICE},
+    resource::Score,
     StatsRes,
 };
 use crate::{
@@ -30,6 +31,7 @@ const DATE_COLOR_TEXT: Color = Color::rgb(1.0, 0.0, 0.0);
 const WHITE_TEXT: Color = Color::rgb(0.8, 0.8, 0.8);
 const BACKGROUND_COLOR_UI: Color = Color::rgb(0.65, 0.65, 0.65);
 const PANNEL_SPEED: f32 = 100.0;
+const DATE_SPEED: f32 = 30.0;
 fn heredity_button_layout(
     asset_server: &Res<AssetServer>,
     parent: &mut ChildBuilder,
@@ -219,7 +221,7 @@ pub fn setup_level_menu(mut commands: Commands, asset_server: Res<AssetServer>) 
                         .with_children(|date_place| {
                             date_place.spawn((
                                 TextBundle::from_section(
-                                    format!("1980"),
+                                    format!("{}", BEGIN_DATE),
                                     TextStyle {
                                         font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                                         font_size: 30.0,
@@ -227,6 +229,7 @@ pub fn setup_level_menu(mut commands: Commands, asset_server: Res<AssetServer>) 
                                     },
                                 ),
                                 LevelMenu,
+                                DateText,
                             ));
                         });
                     parent
@@ -327,6 +330,17 @@ pub fn down_pannel(time: Res<Time>, mut query_panel: Query<&mut Style, With<Leve
             panel.position.top = Val::Percent(new_value);
         }
     }
+}
+
+pub fn decrement_date(
+    time: Res<Time>,
+    mut score: ResMut<Score>,
+    mut query_panel: Query<&mut Text, With<DateText>>,
+) {
+    let mut text = query_panel.single_mut();
+    score.decrease(DATE_SPEED * time.delta_seconds());
+    text.sections[0].value = score.to_text();
+    println!("{}", score.to_text());
 }
 
 pub fn heredity_button(
