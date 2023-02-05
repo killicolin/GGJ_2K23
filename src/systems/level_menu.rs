@@ -382,7 +382,10 @@ pub fn heredity_button(
                             stats.player_bullets_ttl = max(stats.player_bullets_ttl / 2, 1)
                         }
                         DebufChoices::Damage => stats.player_damage *= 0.7,
-                        DebufChoices::BulletsSpeed => stats.player_bullets_speed *= 0.6,
+                        DebufChoices::BulletsSpeed => {
+                            stats.player_bullets_speed *= 0.6;
+                            stats.player_decay *= 0.6;
+                        }
                         DebufChoices::FireRate => stats.player_fire_rate *= 1.3,
                     });
                 stats.player_color = color.0;

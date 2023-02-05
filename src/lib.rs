@@ -12,8 +12,8 @@ use bevy_editor_pls::EditorPlugin;
 use bevy_kira_audio::AudioPlugin;
 use components::{Aim, Alive, Decay, HitCount, Move, Weapon};
 use constants::{
-    PLAYER_BULLETS, PLAYER_BULLETS_SPEED, PLAYER_BULLETS_TTL, PLAYER_COLOR, PLAYER_DAMAGE,
-    PLAYER_FIRE_RATE, PLAYER_HEALTH, PLAYER_SPEED,
+    BULLETS_DECAYS, PLAYER_BULLETS, PLAYER_BULLETS_SPEED, PLAYER_BULLETS_TTL, PLAYER_COLOR,
+    PLAYER_DAMAGE, PLAYER_FIRE_RATE, PLAYER_HEALTH, PLAYER_SPEED,
 };
 use resource::{ChunksMap, LastShot, Score, TotalKilled, TotalSpawned, TotalToSpawn};
 use std::collections::HashMap;
@@ -53,6 +53,7 @@ pub struct StatsRes {
     pub player_bullets: u32,
     pub player_bullets_ttl: i32,
     pub player_bullets_speed: f32,
+    pub player_decay: f32,
     pub player_color: Color,
 }
 impl Default for StatsRes {
@@ -65,6 +66,7 @@ impl Default for StatsRes {
             player_bullets: PLAYER_BULLETS,
             player_bullets_ttl: PLAYER_BULLETS_TTL,
             player_bullets_speed: PLAYER_BULLETS_SPEED,
+            player_decay: BULLETS_DECAYS,
             player_color: PLAYER_COLOR,
         }
     }
