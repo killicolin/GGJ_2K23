@@ -475,21 +475,21 @@ pub fn mob_spawner(
         return;
     }
     mob_spawn_event.clear();
-    let angle = (thread_rng().gen_range(0..3600) as f32) / 10.0 * std::f32::consts::PI / 180.0;
-    let (x, y) = (
-        angle.cos() * MOB_SPAWN_RADIUS,
-        -angle.sin() * MOB_SPAWN_RADIUS,
-    );
 
     let player = query.single();
 
-    let mob_spawn_position = Vec3 {
-        x: player.translation.x + x,
-        y: player.translation.y + y,
-        z: player.translation.z,
-    };
     // Spawn
     for _ in 0..to_spawn.quantity_per_spawn {
+        let angle = (thread_rng().gen_range(0..3600) as f32) / 10.0 * std::f32::consts::PI / 180.0;
+        let (x, y) = (
+            angle.cos() * MOB_SPAWN_RADIUS,
+            -angle.sin() * MOB_SPAWN_RADIUS,
+        );
+        let mob_spawn_position = Vec3 {
+            x: player.translation.x + x,
+            y: player.translation.y + y,
+            z: player.translation.z,
+        };
         if to_spawn.amount > spawned.amount {
             commands.spawn((
                 EnemyBundle {
@@ -637,6 +637,7 @@ pub fn bullet_hitting_update(
     asset_server: Res<AssetServer>,
     audio: Res<Audio>,
 ) {
+    let mut is_hitting = false;
     query_bullets.for_each_mut(|(bullet_transform, bullet_harm, mut hit_count)| {
         query_enemy.for_each_mut(|(enemy_transform, mut enemy_alive, mut sprite)| {
             //collide
@@ -649,7 +650,7 @@ pub fn bullet_hitting_update(
                 enemy_transform.translation,
                 enemy_transform.scale.truncate() * 32.0,
             ) {
-                audio.play(asset_server.load("sounds/hit.ogg"));
+                is_hitting = true;
                 enemy_alive.health -= bullet_harm.damage;
                 sprite.color =
                     lerp_color(MOB_COLOR_HURT, MOB_COLOR, enemy_alive.health / MOB_HEALTH);
@@ -657,6 +658,9 @@ pub fn bullet_hitting_update(
             }
         });
     });
+    if is_hitting {
+        audio.play(asset_server.load("sounds/hit.ogg"));
+    }
 }
 
 pub fn enemy_hitting_update(

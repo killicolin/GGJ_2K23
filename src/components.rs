@@ -220,7 +220,7 @@ impl Display for DebufChoices {
             DebufChoices::Bullets => write!(f, "Bullets: -50%"),
             DebufChoices::BulletsTtl => write!(f, "Piercing shot: -50%"),
             DebufChoices::Damage => write!(f, "Damage: -30%"),
-            DebufChoices::BulletsSpeed => write!(f, "Bullets speed: -40%"),
+            DebufChoices::BulletsSpeed => write!(f, "Bullets speed/range: -40%"),
             DebufChoices::FireRate => write!(f, "Fire rate : -30%"),
         }
     }
