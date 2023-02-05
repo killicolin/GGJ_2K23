@@ -1,9 +1,9 @@
 use bevy::{
     audio::AudioSink,
     prelude::{
-        AssetServer, Assets, Audio, Camera2dBundle, Commands, Entity, EventReader, EventWriter,
-        Handle, Input, KeyCode, MouseButton, OrthographicProjection, Query, Res, ResMut, State,
-        Transform, Vec2, Vec3, With, Without,
+        AssetServer, Assets, Audio, Camera2dBundle, Color, Commands, Entity, EventReader,
+        EventWriter, Handle, Input, KeyCode, MouseButton, OrthographicProjection, Query, Res,
+        ResMut, State, Transform, Vec2, Vec3, Vec4, With, Without,
     },
     sprite::{
         collide_aabb::collide, Sprite, SpriteBundle, SpriteSheetBundle, TextureAtlas,
@@ -22,8 +22,8 @@ use crate::{
     },
     constants::{
         BULLETS_COLOR, BULLETS_DECAYS, BULLETS_SCALE, BULLETS_SPREAD, BULLET_HEALTH, BULLET_TTL,
-        MOB_COLOR, MOB_DAMAGE, MOB_HEALTH, MOB_SCALE, MOB_SPAWN_RADIUS, MOB_SPEED, PLAYER_AIM,
-        PLAYER_DIRECTION, PLAYER_POSITION, PLAYER_SCALE,
+        MOB_COLOR, MOB_COLOR_HURT, MOB_DAMAGE, MOB_HEALTH, MOB_SCALE, MOB_SPAWN_RADIUS, MOB_SPEED,
+        PLAYER_AIM, PLAYER_DIRECTION, PLAYER_POSITION, PLAYER_SCALE,
     },
     resource::{
         ChunkType, ChunksMap, LastShot, MusicController, Score, TotalKilled, TotalSpawned,
@@ -562,12 +562,34 @@ pub fn despawn_ttl(mut commands: Commands, mut query: Query<(Entity, &HitCount)>
     }
 }
 
+pub fn lerp_color(color: Color, other_color: Color, value: f32) -> Color {
+    let new_color_vec = Vec4::new(color.r(), color.g(), color.b(), color.a()).lerp(
+        Vec4::new(
+            other_color.r(),
+            other_color.g(),
+            other_color.b(),
+            other_color.a(),
+        ),
+        value,
+    );
+    let new_color = Color::rgba_linear(
+        new_color_vec.x,
+        new_color_vec.y,
+        new_color_vec.z,
+        new_color_vec.w,
+    );
+    new_color
+}
+
 pub fn bullet_hitting_update(
     mut query_bullets: Query<(&Transform, &Harm, &mut HitCount), (With<Bullet>, Without<Enemy>)>,
-    mut query_enemy: Query<(&Transform, &mut Alive), (With<Enemy>, Without<Bullet>)>,
+    mut query_enemy: Query<
+        (&Transform, &mut Alive, &mut TextureAtlasSprite),
+        (With<Enemy>, Without<Bullet>),
+    >,
 ) {
     query_bullets.for_each_mut(|(bullet_transform, bullet_harm, mut hit_count)| {
-        query_enemy.for_each_mut(|(enemy_transform, mut enemy_alive)| {
+        query_enemy.for_each_mut(|(enemy_transform, mut enemy_alive, mut sprite)| {
             //collide
             if hit_count.ttl <= 0 {
                 return;
@@ -579,6 +601,8 @@ pub fn bullet_hitting_update(
                 enemy_transform.scale.truncate() * 32.0,
             ) {
                 enemy_alive.health -= bullet_harm.damage;
+                sprite.color =
+                    lerp_color(MOB_COLOR_HURT, MOB_COLOR, enemy_alive.health / MOB_HEALTH);
                 hit_count.ttl -= 1;
             }
         });
