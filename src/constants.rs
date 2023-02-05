@@ -45,3 +45,6 @@ pub const SPAWN_TICK_BY_LVL: [u32; 10] = [1, 1, 2, 2, 2, 3, 3, 3, 3, 4];
 // Score parameter
 pub const BEGIN_DATE: i32 = 2100;
 pub const DECREMENT_DATE_PER_LEVEL: i32 = 35;
+
+// Map scale
+pub const MAP_SCALE: Vec3 = Vec3::new(1.0, 1.0, 1.0);

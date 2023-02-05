@@ -11,6 +11,7 @@ use bevy::{
     },
     utils::default,
 };
+use bevy_kira_audio::prelude::*;
 use rand::{thread_rng, Rng};
 
 use crate::{
@@ -314,9 +315,17 @@ pub fn content_layout(asset_server: &Res<AssetServer>, parent: &mut ChildBuilder
     ));
 }
 
-pub fn clean_level_menu(mut commands: Commands, main_menu_query: Query<Entity, With<LevelMenu>>) {
+pub fn clean_level_menu(
+    mut commands: Commands,
+    main_menu_query: Query<Entity, With<LevelMenu>>,
+    score: Res<Score>,
+    audio: Res<Audio>,
+) {
     for entity in main_menu_query.iter() {
         commands.entity(entity).despawn();
+    }
+    if score.should_start_music() {
+        audio.stop();
     }
 }
 

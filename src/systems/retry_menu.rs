@@ -9,6 +9,7 @@ use bevy::{
     },
     utils::default,
 };
+use bevy_kira_audio::prelude::*;
 
 use crate::{components::RetryMenu, StatsRes};
 use crate::{resource::Score, AppState};
@@ -82,12 +83,14 @@ pub fn clean_retry_menu(
     retry_menu_query: Query<Entity, With<RetryMenu>>,
     mut stats: ResMut<StatsRes>,
     mut score: ResMut<Score>,
+    audio: Res<Audio>,
 ) {
     for entity in retry_menu_query.iter() {
         commands.entity(entity).despawn();
     }
     *stats = StatsRes::default();
     *score = Score::default();
+    audio.stop();
 }
 
 pub fn retry_button(

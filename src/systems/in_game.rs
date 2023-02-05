@@ -22,8 +22,8 @@ use crate::{
     },
     constants::{
         BULLETS_COLOR, BULLETS_DECAYS, BULLETS_SCALE, BULLETS_SPREAD, BULLET_HEALTH, BULLET_TTL,
-        MOB_COLOR, MOB_COLOR_HURT, MOB_DAMAGE, MOB_HEALTH, MOB_SCALE, MOB_SPAWN_RADIUS, MOB_SPEED,
-        PLAYER_AIM, PLAYER_DIRECTION, PLAYER_POSITION, PLAYER_SCALE, SPEED_SPAWN_BY_LVL,
+        MAP_SCALE, MOB_COLOR, MOB_COLOR_HURT, MOB_DAMAGE, MOB_HEALTH, MOB_SCALE, MOB_SPAWN_RADIUS,
+        MOB_SPEED, PLAYER_AIM, PLAYER_DIRECTION, PLAYER_POSITION, PLAYER_SCALE, SPEED_SPAWN_BY_LVL,
     },
     resource::{ChunkType, ChunksMap, LastShot, Score, TotalKilled, TotalSpawned, TotalToSpawn},
     AppState, StatsRes,
@@ -81,9 +81,11 @@ pub fn setup_in_game(
     audio: Res<Audio>,
     mut create_map_event: EventWriter<CreateMapEvent>,
 ) {
-    let nb_music = score.historic_period_theme();
-    let music = asset_server.load(format!("sounds/in_game_{nb_music}.ogg"));
-    audio.play(music);
+    if score.should_start_music() {
+        let nb_music = score.historic_period_theme();
+        let music = asset_server.load(format!("sounds/in_game_{nb_music}.ogg"));
+        audio.play(music);
+    }
     // Camera
     commands.spawn((Camera2dBundle::default(), InGame));
     let texture_handle = asset_server.load("images/atlas.png");
@@ -146,15 +148,10 @@ pub fn setup_in_game(
     create_map_event.send(CreateMapEvent);
 }
 
-pub fn clean_in_game(
-    mut commands: Commands,
-    in_game_query: Query<Entity, With<InGame>>,
-    audio: Res<Audio>,
-) {
+pub fn clean_in_game(mut commands: Commands, in_game_query: Query<Entity, With<InGame>>) {
     for entity in in_game_query.iter() {
         commands.entity(entity).despawn();
     }
-    audio.stop();
 }
 
 pub fn load_chunks(
@@ -188,11 +185,11 @@ pub fn load_chunks(
                                 y: j as f32 * 256.0,
                                 z: 0.0,
                             },
-                            scale: PLAYER_SCALE,
+                            scale: MAP_SCALE,
                             ..default()
                         },
                         sprite: Sprite { ..default() },
-                        texture: asset_server.load("images/map_chunk.png"),
+                        texture: asset_server.load("images/map_chunk_0.png"),
                         ..default()
                     });
                     chunk_map_resource.chunks.insert((i, j), ChunkType::Basic);
