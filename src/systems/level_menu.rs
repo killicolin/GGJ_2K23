@@ -4,16 +4,17 @@ use bevy::{
         Children, Color, Commands, Entity, NodeBundle, Query, Res, ResMut, State, TextBundle, With,
     },
     text::TextStyle,
+    time::Time,
     ui::{
         AlignItems, AlignSelf, BackgroundColor, FlexDirection, Interaction, JustifyContent,
-        PositionType, Size, Style, UiImage, Val,
+        PositionType, Size, Style, UiImage, UiRect, Val,
     },
     utils::default,
 };
 use rand::{thread_rng, Rng};
 
 use crate::{
-    components::{DebufChoices, LevelMenu},
+    components::{DebufChoices, LevelMenu, LevelMenuPannel},
     constants::LORE_PARENT_CHOICE,
     StatsRes,
 };
@@ -28,6 +29,7 @@ const HOVER_BUTTON: Color = Color::rgb(0.30, 0.30, 0.30);
 const DATE_COLOR_TEXT: Color = Color::rgb(1.0, 0.0, 0.0);
 const WHITE_TEXT: Color = Color::rgb(0.8, 0.8, 0.8);
 const BACKGROUND_COLOR_UI: Color = Color::rgb(0.65, 0.65, 0.65);
+const PANNEL_SPEED: f32 = 100.0;
 fn heredity_button_layout(
     asset_server: &Res<AssetServer>,
     parent: &mut ChildBuilder,
@@ -187,12 +189,17 @@ pub fn setup_level_menu(mut commands: Commands, asset_server: Res<AssetServer>) 
                             size: Size::new(Val::Percent(70.0), Val::Percent(70.0)),
                             align_items: AlignItems::Center,
                             justify_content: JustifyContent::SpaceAround,
+                            position: UiRect {
+                                top: Val::Percent(-83.0),
+                                ..default()
+                            },
                             ..default()
                         },
                         background_color: NORMAL_BUTTON.into(),
                         ..default()
                     },
                     LevelMenu,
+                    LevelMenuPannel,
                 ))
                 .with_children(|parent| {
                     parent
@@ -307,6 +314,18 @@ pub fn content_layout(asset_server: &Res<AssetServer>, parent: &mut ChildBuilder
 pub fn clean_level_menu(mut commands: Commands, main_menu_query: Query<Entity, With<LevelMenu>>) {
     for entity in main_menu_query.iter() {
         commands.entity(entity).despawn();
+    }
+}
+
+pub fn down_pannel(time: Res<Time>, mut query_panel: Query<&mut Style, With<LevelMenuPannel>>) {
+    let mut panel = query_panel.single_mut();
+    if let Val::Percent(y) = panel.position.top {
+        let new_value = y + PANNEL_SPEED * time.delta_seconds();
+        if new_value > 0.0 {
+            panel.position.top = Val::Undefined;
+        } else {
+            panel.position.top = Val::Percent(new_value);
+        }
     }
 }
 

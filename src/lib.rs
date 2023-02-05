@@ -25,7 +25,7 @@ use systems::{
         setup_in_game, transform_update, wave_is_done_emit, GameOverEvent, MobSpawnEvent,
         SpawnBulletEvent, WaveDoneEvent,
     },
-    level_menu::{clean_level_menu, heredity_button, setup_level_menu},
+    level_menu::{clean_level_menu, down_pannel, heredity_button, setup_level_menu},
     main_menu::{clean_main_menu, setup_main_menu, start_button},
     retry_menu::{clean_retry_menu, retry_button, setup_retry_menu},
 };
@@ -97,7 +97,11 @@ pub fn run(width: f32, height: f32) {
     .add_system_set(SystemSet::on_update(AppState::RetryMenu).with_system(retry_button))
     .add_system_set(SystemSet::on_exit(AppState::RetryMenu).with_system(clean_retry_menu))
     .add_system_set(SystemSet::on_enter(AppState::LevelMenu).with_system(setup_level_menu))
-    .add_system_set(SystemSet::on_update(AppState::LevelMenu).with_system(heredity_button))
+    .add_system_set(
+        SystemSet::on_update(AppState::LevelMenu)
+            .with_system(heredity_button)
+            .with_system(down_pannel),
+    )
     .add_system_set(SystemSet::on_exit(AppState::LevelMenu).with_system(clean_level_menu))
     .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup_in_game))
     .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(clean_in_game))
