@@ -340,7 +340,6 @@ pub fn decrement_date(
     let mut text = query_panel.single_mut();
     score.decrease(DATE_SPEED * time.delta_seconds());
     text.sections[0].value = score.to_text();
-    println!("{}", score.to_text());
 }
 
 pub fn heredity_button(
