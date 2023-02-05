@@ -1,9 +1,8 @@
 use bevy::{
-    audio::AudioSink,
     prelude::{
-        AssetServer, Assets, Audio, Camera2dBundle, Color, Commands, Entity, EventReader,
-        EventWriter, Handle, Input, KeyCode, MouseButton, OrthographicProjection, Query, Res,
-        ResMut, State, Transform, Vec2, Vec3, Vec4, With, Without,
+        AssetServer, Assets, Camera2dBundle, Color, Commands, Entity, EventReader, EventWriter,
+        Handle, Input, KeyCode, MouseButton, OrthographicProjection, Query, Res, ResMut, State,
+        Transform, Vec2, Vec3, Vec4, With, Without,
     },
     sprite::{
         collide_aabb::collide, Sprite, SpriteBundle, SpriteSheetBundle, TextureAtlas,
@@ -13,6 +12,7 @@ use bevy::{
     utils::default,
     window::Windows,
 };
+use bevy_kira_audio::prelude::*;
 use rand::{thread_rng, Rng};
 
 use crate::{
@@ -25,10 +25,7 @@ use crate::{
         MOB_COLOR, MOB_COLOR_HURT, MOB_DAMAGE, MOB_HEALTH, MOB_SCALE, MOB_SPAWN_RADIUS, MOB_SPEED,
         PLAYER_AIM, PLAYER_DIRECTION, PLAYER_POSITION, PLAYER_SCALE,
     },
-    resource::{
-        ChunkType, ChunksMap, LastShot, MusicController, Score, TotalKilled, TotalSpawned,
-        TotalToSpawn,
-    },
+    resource::{ChunkType, ChunksMap, LastShot, Score, TotalKilled, TotalSpawned, TotalToSpawn},
     AppState, StatsRes,
 };
 
@@ -80,12 +77,10 @@ pub fn setup_in_game(
     score: Res<Score>,
 
     audio: Res<Audio>,
-    audio_sinks: Res<Assets<AudioSink>>,
 ) {
     let nb_music = score.historic_period_theme();
     let music = asset_server.load(format!("sounds/in_game_{nb_music}.ogg"));
-    let handle = audio_sinks.get_handle(audio.play(music));
-    commands.insert_resource(MusicController(handle));
+    audio.play(music);
     // Camera
     commands.spawn((Camera2dBundle::default(), InGame));
     let texture_handle = asset_server.load("images/atlas.png");
@@ -150,8 +145,7 @@ pub fn clean_in_game(
     mut total_spawned: ResMut<TotalSpawned>,
     mut total_to_spawn: ResMut<TotalToSpawn>,
     mut total_killed: ResMut<TotalKilled>,
-    audio_sinks: Res<Assets<AudioSink>>,
-    music_controller: Res<MusicController>,
+    audio: Res<Audio>,
 ) {
     for entity in in_game_query.iter() {
         commands.entity(entity).despawn();
@@ -159,10 +153,7 @@ pub fn clean_in_game(
     total_killed.amount = 0;
     total_spawned.amount = 0;
     total_to_spawn.amount *= 2;
-    if let Some(sink) = audio_sinks.get(&music_controller.0) {
-        sink.stop();
-    }
-    commands.remove_resource::<MusicController>();
+    audio.stop();
 }
 
 pub fn load_chunks(

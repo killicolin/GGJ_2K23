@@ -1,9 +1,6 @@
 use core::f32;
 
-use bevy::{
-    audio::AudioSink,
-    prelude::{Handle, Resource},
-};
+use bevy::prelude::Resource;
 use std::collections::HashMap;
 
 use crate::constants::{BEGIN_DATE, DECREMENT_DATE_PER_LEVEL};
@@ -69,8 +66,6 @@ impl Default for Score {
     }
 }
 
-#[derive(Resource)]
-pub struct MusicController(pub Handle<AudioSink>);
 pub enum ChunkType {
     Basic,
 }

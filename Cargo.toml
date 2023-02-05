@@ -14,8 +14,25 @@ opt-level = 1
 opt-level = 3
 
 [dependencies]
-bevy = {version = "0.9.1", features = ['vorbis']}
+bevy = {version = "0.9.1", default-features = false, features = ["render",
+  "animation",
+  "bevy_asset",
+  "bevy_gilrs",
+  "bevy_scene",
+  "bevy_winit",
+  "bevy_core_pipeline",
+  "bevy_pbr",
+  "bevy_gltf",
+  "bevy_render",
+  "bevy_sprite",
+  "bevy_text",
+  "bevy_ui",
+  "png",
+  "hdr",
+  "x11",
+  "filesystem_watcher"]}
 bevy_editor_pls = "0.2"
+bevy_kira_audio = {version = "0.13.0", features = ["ogg"]}
 rand = "0.8"
 
 [target.wasm32-unknown-unknown]

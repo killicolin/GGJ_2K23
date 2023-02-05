@@ -15,8 +15,15 @@
 
     </style>
   </head>
+  <body>
+    <button id="init">START</button>
+  </body>
   <script type="module">
     import init from './out/ggj_2k33.js'; //rename ggj_2k33
-    init();
+    document.querySelector('#init').addEventListener('click', () => {
+      document.querySelector('#init').remove();
+      init();
+    })
+
   </script>
 </html>

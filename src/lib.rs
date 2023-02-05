@@ -9,6 +9,7 @@ use bevy::{
     DefaultPlugins,
 };
 use bevy_editor_pls::EditorPlugin;
+use bevy_kira_audio::AudioPlugin;
 use components::{Aim, Alive, Decay, HitCount, Move, Weapon};
 use constants::MOB_MAX_SPAWN_PER_WAVE;
 use constants::{
@@ -30,6 +31,7 @@ use systems::{
         clean_level_menu, decrement_date, down_pannel, heredity_button, setup_level_menu,
     },
     main_menu::{clean_main_menu, setup_main_menu, start_button},
+    prestart_menu::{clean_pre_start_menu, ingame_button, setup_pre_start_menu},
     retry_menu::{clean_retry_menu, retry_button, setup_retry_menu},
 };
 
@@ -40,6 +42,7 @@ pub enum AppState {
     Paused,
     RetryMenu,
     LevelMenu,
+    PreStartMenu,
 }
 
 #[derive(Resource)]
@@ -79,6 +82,7 @@ pub fn run(width: f32, height: f32) {
         },
         ..default()
     }))
+    .add_plugin(AudioPlugin)
     .insert_resource(TotalToSpawn {
         amount: MOB_MAX_SPAWN_PER_WAVE,
     })
@@ -99,6 +103,9 @@ pub fn run(width: f32, height: f32) {
     .add_system_set(SystemSet::on_enter(AppState::MainMenu).with_system(setup_main_menu))
     .add_system_set(SystemSet::on_update(AppState::MainMenu).with_system(start_button))
     .add_system_set(SystemSet::on_exit(AppState::MainMenu).with_system(clean_main_menu))
+    .add_system_set(SystemSet::on_enter(AppState::PreStartMenu).with_system(setup_pre_start_menu))
+    .add_system_set(SystemSet::on_update(AppState::PreStartMenu).with_system(ingame_button))
+    .add_system_set(SystemSet::on_exit(AppState::PreStartMenu).with_system(clean_pre_start_menu))
     .add_system_set(SystemSet::on_enter(AppState::RetryMenu).with_system(setup_retry_menu))
     .add_system_set(SystemSet::on_update(AppState::RetryMenu).with_system(retry_button))
     .add_system_set(SystemSet::on_exit(AppState::RetryMenu).with_system(clean_retry_menu))
