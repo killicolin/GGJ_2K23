@@ -5,8 +5,8 @@ use bevy::{
     },
     text::TextStyle,
     ui::{
-        AlignItems, BackgroundColor, FlexDirection, Interaction, JustifyContent, Size, Style,
-        UiImage, Val,
+        AlignItems, AlignSelf, BackgroundColor, FlexDirection, Interaction, JustifyContent,
+        PositionType, Size, Style, UiImage, Val,
     },
     utils::default,
 };
@@ -14,6 +14,7 @@ use rand::{thread_rng, Rng};
 
 use crate::{
     components::{DebufChoices, LevelMenu},
+    constants::LORE_PARENT_CHOICE,
     StatsRes,
 };
 use crate::{
@@ -23,7 +24,10 @@ use crate::{
 
 // UI
 const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
-
+const HOVER_BUTTON: Color = Color::rgb(0.30, 0.30, 0.30);
+const DATE_COLOR_TEXT: Color = Color::rgb(1.0, 0.0, 0.0);
+const WHITE_TEXT: Color = Color::rgb(0.8, 0.8, 0.8);
+const BACKGROUND_COLOR_UI: Color = Color::rgb(0.65, 0.65, 0.65);
 fn heredity_button_layout(
     asset_server: &Res<AssetServer>,
     parent: &mut ChildBuilder,
@@ -113,13 +117,13 @@ fn heredity_layout(
         .spawn((
             NodeBundle {
                 style: Style {
-                    size: Size::new(Val::Percent(35.0), Val::Percent(50.0)),
+                    size: Size::new(Val::Percent(35.0), Val::Percent(100.0)),
                     align_items: AlignItems::Center,
                     flex_direction: FlexDirection::Column,
                     justify_content: JustifyContent::SpaceAround,
                     ..default()
                 },
-                background_color: Color::rgb(0.65, 0.65, 0.65).into(),
+                background_color: BACKGROUND_COLOR_UI.into(),
                 ..default()
             },
             LevelMenu,
@@ -129,7 +133,7 @@ fn heredity_layout(
                 .spawn((
                     NodeBundle {
                         style: Style {
-                            size: Size::new(Val::Percent(100.0), Val::Percent(10.0)),
+                            size: Size::new(Val::Percent(95.0), Val::Percent(10.0)),
                             align_items: AlignItems::Center,
                             flex_direction: FlexDirection::Column,
                             justify_content: JustifyContent::SpaceAround,
@@ -147,7 +151,7 @@ fn heredity_layout(
                             TextStyle {
                                 font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                                 font_size: 20.0,
-                                color: Color::rgb(0.8, 0.8, 0.8),
+                                color: WHITE_TEXT,
                             },
                         ),
                         LevelMenu,
@@ -161,8 +165,6 @@ fn heredity_layout(
 }
 
 pub fn setup_level_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let (debuf_mom, debuf_dad) = Debuff::get_parent_random();
-
     commands.spawn((Camera2dBundle::default(), LevelMenu));
     commands
         .spawn((
@@ -187,15 +189,119 @@ pub fn setup_level_menu(mut commands: Commands, asset_server: Res<AssetServer>) 
                             justify_content: JustifyContent::SpaceAround,
                             ..default()
                         },
+                        background_color: NORMAL_BUTTON.into(),
                         ..default()
                     },
                     LevelMenu,
                 ))
                 .with_children(|parent| {
-                    heredity_layout(&asset_server, parent, debuf_dad, "Dad");
-                    heredity_layout(&asset_server, parent, debuf_mom, "Mom");
+                    parent
+                        .spawn((
+                            NodeBundle {
+                                style: Style {
+                                    size: Size::new(Val::Auto, Val::Auto),
+                                    align_items: AlignItems::Center,
+                                    justify_content: JustifyContent::SpaceAround,
+                                    position_type: PositionType::Absolute,
+                                    ..default()
+                                },
+                                ..default()
+                            },
+                            LevelMenu,
+                        ))
+                        .with_children(|date_place| {
+                            date_place.spawn((
+                                TextBundle::from_section(
+                                    format!("1980"),
+                                    TextStyle {
+                                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                                        font_size: 30.0,
+                                        color: DATE_COLOR_TEXT,
+                                    },
+                                ),
+                                LevelMenu,
+                            ));
+                        });
+                    parent
+                        .spawn((
+                            NodeBundle {
+                                style: Style {
+                                    size: Size::new(Val::Percent(90.0), Val::Percent(90.0)),
+                                    align_items: AlignItems::Center,
+                                    justify_content: JustifyContent::SpaceAround,
+                                    flex_direction: FlexDirection::Column,
+                                    ..default()
+                                },
+                                ..default()
+                            },
+                            LevelMenu,
+                        ))
+                        .with_children(|parent| {
+                            content_layout(&asset_server, parent);
+                        });
                 });
         });
+}
+
+pub fn content_layout(asset_server: &Res<AssetServer>, parent: &mut ChildBuilder) {
+    let (debuf_mom, debuf_dad) = Debuff::get_parent_random();
+    parent
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    size: Size::new(Val::Auto, Val::Percent(20.0)),
+                    align_items: AlignItems::Center,
+                    align_self: AlignSelf::Center,
+                    justify_content: JustifyContent::SpaceAround,
+                    ..default()
+                },
+                ..default()
+            },
+            LevelMenu,
+        ))
+        .with_children(|parent| {
+            parent.spawn((
+                TextBundle::from_section(
+                    format!("{LORE_PARENT_CHOICE}"),
+                    TextStyle {
+                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                        font_size: 20.0,
+                        color: WHITE_TEXT,
+                    },
+                ),
+                LevelMenu,
+            ));
+        });
+    parent
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    size: Size::new(Val::Percent(90.0), Val::Percent(75.0)),
+                    align_items: AlignItems::Center,
+                    justify_content: JustifyContent::SpaceAround,
+                    ..default()
+                },
+                ..default()
+            },
+            LevelMenu,
+        ))
+        .with_children(|parent| {
+            heredity_layout(&asset_server, parent, debuf_dad, "Dad");
+            heredity_layout(&asset_server, parent, debuf_mom, "Mom");
+        });
+    parent.spawn((
+        NodeBundle {
+            style: Style {
+                size: Size::new(Val::Percent(100.0), Val::Percent(5.0)),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::SpaceAround,
+                ..default()
+            },
+            //background_color: Color::YELLOW.into(),
+            ..default()
+        },
+        LevelMenu,
+    ));
 }
 
 pub fn clean_level_menu(mut commands: Commands, main_menu_query: Query<Entity, With<LevelMenu>>) {
@@ -210,7 +316,7 @@ pub fn heredity_button(
     mut interaction_query: Query<
         (
             &Interaction,
-            &BackgroundColor,
+            &mut BackgroundColor,
             &Children,
             &Debuff,
             &PlayerColor,
@@ -218,7 +324,7 @@ pub fn heredity_button(
         (Changed<Interaction>, With<Button>),
     >,
 ) {
-    for (interaction, _, _, debuf, color) in &mut interaction_query {
+    for (interaction, mut button_color, _, debuf, color) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
                 debuf
@@ -234,7 +340,10 @@ pub fn heredity_button(
                     });
                 stats.player_color = color.0;
                 app_state.set(AppState::InGame).unwrap();
+                *button_color = NORMAL_BUTTON.into()
             }
+            Interaction::Hovered => *button_color = HOVER_BUTTON.into(),
+            Interaction::None => *button_color = NORMAL_BUTTON.into(),
             _ => {}
         }
     }

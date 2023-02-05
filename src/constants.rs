@@ -1,6 +1,8 @@
 use bevy::prelude::{Color, Vec2, Vec3};
 
-// Player starting stats
+//
+pub const LORE_PARENT_CHOICE: &str = "The robots of the future failed to kill you !!\nThey decided to kill one of your parents before your procreation to erase you from reality.\n";
+// Player starting statscargo
 pub const PLAYER_DIRECTION: Vec2 = Vec2 { x: 1.0, y: 1.0 };
 pub const PLAYER_SPEED: f32 = 100.0;
 pub const PLAYER_DAMAGE: f32 = 1.0;
@@ -29,4 +31,4 @@ pub const MOB_SPAWN_RADIUS: f32 = 700.0;
 pub const MOB_DAMAGE: f32 = 1.0;
 pub const MOB_HEALTH: f32 = 1.0;
 pub const MOB_SCALE: Vec3 = Vec3::new(1.0, 1.0, 1.0);
-pub const MOB_MAX_SPAWN_PER_WAVE: u32 = 5;
+pub const MOB_MAX_SPAWN_PER_WAVE: u32 = 0;
