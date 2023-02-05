@@ -437,7 +437,7 @@ pub fn mob_spawner(
 ) {
     let texture_handle = asset_server.load("images/mob_atlas.png");
     let texture_atlas =
-        TextureAtlas::from_grid(texture_handle, Vec2::new(64.0, 64.0), 6, 1, None, None);
+        TextureAtlas::from_grid(texture_handle, Vec2::new(64.0, 64.0), 5, 1, None, None);
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
     if mob_spawn_event.is_empty() || to_spawn.amount <= spawned.amount {
         return;
