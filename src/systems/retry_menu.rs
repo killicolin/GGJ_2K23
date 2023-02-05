@@ -27,6 +27,7 @@ pub fn setup_retry_menu(
     mut total_to_spawn: ResMut<TotalToSpawn>,
     mut total_killed: ResMut<TotalKilled>,
     mut total_spawned: ResMut<TotalSpawned>,
+    score: Res<Score>,
 ) {
     // ui camera
     total_to_spawn.update_paramter_for_level_id(0);
@@ -40,7 +41,7 @@ pub fn setup_retry_menu(
                     size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
                     align_items: AlignItems::Center,
                     flex_direction: FlexDirection::Column,
-                    justify_content: JustifyContent::Center,
+                    justify_content: JustifyContent::SpaceEvenly,
                     ..default()
                 },
                 ..default()
@@ -55,6 +56,17 @@ pub fn setup_retry_menu(
                         font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                         font_size: 40.0,
                         color: Color::rgb(0.9, 0.9, 0.9),
+                    },
+                ),
+                RetryMenu,
+            ));
+            parent.spawn((
+                TextBundle::from_section(
+                    format!("Your ancestor was killed in the year {}", score.to_text()),
+                    TextStyle {
+                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                        font_size: 40.0,
+                        color: Color::rgb(0.9, 0.0, 0.0),
                     },
                 ),
                 RetryMenu,
