@@ -23,8 +23,8 @@ use systems::{
         change_level, clean_in_game, decay, despawn_health, despawn_ttl, enemy_direction_update,
         enemy_hitting_update, firing_bullet_emit, game_over, key_input_update, load_chunks,
         make_map, manage_mob_spawner_timer, mob_spawner, mouse_button_input_update,
-        player_aim_update, setup_in_game, transform_update, wave_is_done_emit, GameOverEvent,
-        MobSpawnEvent, SpawnBulletEvent, WaveDoneEvent,
+        player_aim_update, setup_in_game, transform_update, wave_is_done_emit, CreateMapEvent,
+        GameOverEvent, MobSpawnEvent, SpawnBulletEvent, WaveDoneEvent,
     },
     level_menu::{
         clean_level_menu, decrement_date, down_pannel, heredity_button, setup_level_menu,
@@ -94,6 +94,7 @@ pub fn run(width: f32, height: f32) {
     .add_event::<MobSpawnEvent>()
     .add_event::<GameOverEvent>()
     .add_event::<WaveDoneEvent>()
+    .add_event::<CreateMapEvent>()
     // To change to AppState::MainMenu when loop is finished
     .add_state(AppState::MainMenu)
     .init_resource::<StatsRes>()
@@ -115,15 +116,14 @@ pub fn run(width: f32, height: f32) {
     )
     .add_system_set(SystemSet::on_exit(AppState::LevelMenu).with_system(clean_level_menu))
     .add_system_set(
-        SystemSet::on_enter(AppState::InGame)
-            .with_system(setup_in_game)
-            .with_system(make_map),
+        SystemSet::on_enter(AppState::InGame).with_system(setup_in_game), // .with_system(make_map),
     )
     .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(clean_in_game))
     .add_system_set(
         SystemSet::on_update(AppState::InGame)
             .with_system(player_aim_update)
             .with_system(camera_position_update)
+            .with_system(make_map)
             .with_system(load_chunks)
             .with_system(mouse_button_input_update)
             .with_system(key_input_update)

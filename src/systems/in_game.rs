@@ -35,6 +35,8 @@ pub struct WaveDoneEvent;
 
 pub struct GameOverEvent;
 
+pub struct CreateMapEvent;
+
 #[derive(Default)]
 pub struct MobSpawnEvent;
 
@@ -77,6 +79,7 @@ pub fn setup_in_game(
     score: Res<Score>,
 
     audio: Res<Audio>,
+    mut create_map_event: EventWriter<CreateMapEvent>,
 ) {
     let nb_music = score.historic_period_theme();
     let music = asset_server.load(format!("sounds/in_game_{nb_music}.ogg"));
@@ -140,6 +143,7 @@ pub fn setup_in_game(
         )),
         InGame,
     ));
+    create_map_event.send(CreateMapEvent);
 }
 
 pub fn clean_in_game(
@@ -204,7 +208,12 @@ pub fn make_map(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     query_camera: Query<(&Transform, &OrthographicProjection)>,
+    create_map_event: EventReader<CreateMapEvent>,
 ) {
+    if create_map_event.is_empty() {
+        return;
+    }
+    create_map_event.clear();
     // Determine camera chunk position (chunk is 256x256 pixels image)
     let (camera_transform, orth) = query_camera.iter().last().unwrap();
     let x = camera_transform.translation.x;
