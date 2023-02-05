@@ -459,7 +459,12 @@ pub fn mob_spawner(
     mut spawned: ResMut<TotalSpawned>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-    let texture_handle = asset_server.load("images/mob_atlas.png");
+    let mob_is_robot = thread_rng().gen_range(0..4) == 3;
+    let texture_handle = if mob_is_robot {
+        asset_server.load("images/mob_atlas_1.png")
+    } else {
+        asset_server.load("images/mob_atlas_0.png")
+    };
     let texture_atlas =
         TextureAtlas::from_grid(texture_handle, Vec2::new(64.0, 64.0), 5, 1, None, None);
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
@@ -494,7 +499,13 @@ pub fn mob_spawner(
                                 .normalize(),
                         },
                         harm: Harm { damage: MOB_DAMAGE },
-                        alive: Alive { health: MOB_HEALTH },
+                        alive: Alive {
+                            health: if mob_is_robot {
+                                MOB_HEALTH * 2.0
+                            } else {
+                                MOB_HEALTH
+                            },
+                        },
                         collider: Collider,
                     },
                     sprite_bundle: SpriteSheetBundle {
