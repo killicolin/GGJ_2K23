@@ -11,14 +11,27 @@ use bevy::{
 };
 use bevy_kira_audio::prelude::*;
 
-use crate::{components::RetryMenu, StatsRes};
+use crate::{
+    components::RetryMenu,
+    resource::{TotalKilled, TotalSpawned, TotalToSpawn},
+    StatsRes,
+};
 use crate::{resource::Score, AppState};
 
 // UI
 const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
 
-pub fn setup_retry_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn setup_retry_menu(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut total_to_spawn: ResMut<TotalToSpawn>,
+    mut total_killed: ResMut<TotalKilled>,
+    mut total_spawned: ResMut<TotalSpawned>,
+) {
     // ui camera
+    total_to_spawn.update_paramter_for_level_id(0);
+    total_killed.amount = 0;
+    total_spawned.amount = 0;
     commands.spawn((Camera2dBundle::default(), RetryMenu));
     commands
         .spawn((
