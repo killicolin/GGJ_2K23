@@ -344,7 +344,6 @@ pub fn heredity_button(
             }
             Interaction::Hovered => *button_color = HOVER_BUTTON.into(),
             Interaction::None => *button_color = NORMAL_BUTTON.into(),
-            _ => {}
         }
     }
 }
