@@ -2,7 +2,7 @@ use bevy::prelude::{Color, Vec2, Vec3};
 
 //
 pub const LORE_PARENT_CHOICE: &str = "The robots of the future failed to kill you !!\nThey decided to kill one of your parents before your procreation to erase you from reality.\n";
-pub const LORE_INTRO: &str = "It is a beautiful day when suddenly an army of robots from the future appears !\nIt must probably be one of you clumsy future chidlren who mess up the future !!\nProtect human race from robots domination !";
+pub const LORE_INTRO: &str = "It is a beautiful day when suddenly an army of robots from the future appears !\nIt must probably be one of your clumsy future chidlren who mess up the future !!\nProtect human race from robots domination !";
 // Player starting statscargo
 pub const PLAYER_DIRECTION: Vec2 = Vec2 { x: 1.0, y: 1.0 };
 pub const PLAYER_SPEED: f32 = 100.0;

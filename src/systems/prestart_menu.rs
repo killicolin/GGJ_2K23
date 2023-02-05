@@ -15,6 +15,7 @@ use bevy_kira_audio::prelude::*;
 
 // UI
 const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
+const BACKGROUND_COLOR_UI: Color = Color::rgb(0.65, 0.65, 0.65);
 
 pub fn setup_pre_start_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((Camera2dBundle::default(), PreStartMenu));
@@ -25,7 +26,6 @@ pub fn setup_pre_start_menu(mut commands: Commands, asset_server: Res<AssetServe
                     size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
                     align_items: AlignItems::Center,
                     justify_content: JustifyContent::Center,
-                    flex_direction: FlexDirection::Column,
                     ..default()
                 },
                 ..default()
@@ -33,26 +33,14 @@ pub fn setup_pre_start_menu(mut commands: Commands, asset_server: Res<AssetServe
             PreStartMenu,
         ))
         .with_children(|parent| {
-            parent.spawn((
-                TextBundle::from_section(
-                    LORE_INTRO,
-                    TextStyle {
-                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                        font_size: 40.0,
-                        color: Color::rgb(0.9, 0.9, 0.9),
-                    },
-                ),
-                PreStartMenu,
-            ));
             parent
                 .spawn((
-                    ButtonBundle {
+                    NodeBundle {
                         style: Style {
-                            size: Size::new(Val::Px(160.0), Val::Px(65.0)),
-                            // horizontally center child text
-                            justify_content: JustifyContent::Center,
-                            // vertically center child text
+                            size: Size::new(Val::Percent(80.0), Val::Percent(80.0)),
                             align_items: AlignItems::Center,
+                            justify_content: JustifyContent::SpaceAround,
+                            flex_direction: FlexDirection::Column,
                             ..default()
                         },
                         background_color: NORMAL_BUTTON.into(),
@@ -63,15 +51,44 @@ pub fn setup_pre_start_menu(mut commands: Commands, asset_server: Res<AssetServe
                 .with_children(|parent| {
                     parent.spawn((
                         TextBundle::from_section(
-                            "KILL THEM",
+                            LORE_INTRO,
                             TextStyle {
                                 font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                                font_size: 40.0,
+                                font_size: 28.0,
                                 color: Color::rgb(0.9, 0.9, 0.9),
                             },
                         ),
                         PreStartMenu,
                     ));
+                    parent
+                        .spawn((
+                            ButtonBundle {
+                                style: Style {
+                                    size: Size::new(Val::Px(170.0), Val::Px(65.0)),
+                                    // horizontally center child text
+                                    justify_content: JustifyContent::Center,
+                                    // vertically center child text
+                                    align_items: AlignItems::Center,
+                                    ..default()
+                                },
+                                background_color: BACKGROUND_COLOR_UI.into(),
+                                ..default()
+                            },
+                            PreStartMenu,
+                        ))
+                        .with_children(|parent| {
+                            parent.spawn((
+                                TextBundle::from_section(
+                                    "KILL THEM",
+                                    TextStyle {
+                                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                                        font_size: 40.0,
+                                        color: NORMAL_BUTTON,
+                                    },
+                                ),
+                                PreStartMenu,
+                            ));
+                        });
                 });
         });
 }
