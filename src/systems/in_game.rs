@@ -369,6 +369,9 @@ pub fn transform_update(time: Res<Time>, mut query: Query<(&mut Transform, &Move
     query.for_each_mut(|(mut transform, movable)| {
         transform.translation.x += movable.direction.x * movable.speed * time.delta_seconds();
         transform.translation.y += movable.direction.y * movable.speed * time.delta_seconds();
+        transform.translation.z = (450. - (transform.translation.y) * 0.001)
+            .max(0.0)
+            .min(990.0);
     });
 }
 
