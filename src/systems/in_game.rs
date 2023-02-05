@@ -2,8 +2,8 @@ use bevy::{
     audio::AudioSink,
     prelude::{
         AssetServer, Assets, Audio, Camera2dBundle, Commands, Entity, EventReader, EventWriter,
-        Input, KeyCode, MouseButton, OrthographicProjection, Query, Res, ResMut, State, Transform,
-        Vec2, Vec3, With, Without,
+        Handle, Input, KeyCode, MouseButton, OrthographicProjection, Query, Res, ResMut, State,
+        Transform, Vec2, Vec3, With, Without,
     },
     sprite::{
         collide_aabb::collide, Sprite, SpriteBundle, SpriteSheetBundle, TextureAtlas,
@@ -40,13 +40,28 @@ pub struct MobSpawnEvent;
 
 pub fn animate_sprite(
     time: Res<Time>,
-    mut query: Query<(&mut AnimationTimer, &mut TextureAtlasSprite, &Move)>,
+    texture_atlases: Res<Assets<TextureAtlas>>,
+    mut query: Query<(
+        &mut AnimationTimer,
+        &mut TextureAtlasSprite,
+        &Move,
+        &Handle<TextureAtlas>,
+        Option<&Player>,
+    )>,
 ) {
-    for (mut timer, mut sprite, move_component) in &mut query {
+    for (mut timer, mut sprite, move_component, texture_atlas_handle, maybe_player) in &mut query {
         if (move_component.direction != Vec2 { x: 0.0, y: 0.0 }) {
             timer.tick(time.delta());
             if timer.just_finished() {
-                sprite.index = (sprite.index + 1) % 6;
+                let texture_atlas = texture_atlases.get(texture_atlas_handle).unwrap();
+                if maybe_player.is_some() {
+                    sprite.index = (sprite.index + 1) % (texture_atlas.len() / 2);
+                    if move_component.direction.y > 0.0 {
+                        sprite.index += 6;
+                    }
+                } else {
+                    sprite.index = (sprite.index + 1) % texture_atlas.len();
+                }
             }
         } else {
             sprite.index = 0;
@@ -69,14 +84,14 @@ pub fn setup_in_game(
         s if s >= 2 && s < 4 => 1,
         _ => 2,
     };
-    let music = asset_server.load(format!("sounds/in_game_{nb_music}.mp3"));
+    let music = asset_server.load(format!("sounds/in_game_{nb_music}.ogg"));
     let handle = audio_sinks.get_handle(audio.play(music));
     commands.insert_resource(MusicController(handle));
     // Camera
     commands.spawn((Camera2dBundle::default(), InGame));
     let texture_handle = asset_server.load("images/atlas.png");
     let texture_atlas =
-        TextureAtlas::from_grid(texture_handle, Vec2::new(64.0, 64.0), 6, 1, None, None);
+        TextureAtlas::from_grid(texture_handle, Vec2::new(64.0, 64.0), 6, 2, None, None);
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
     // Use only the subset of sprites in the sheet that make up the run animation
     // Spawn player
@@ -336,7 +351,7 @@ pub fn mob_spawner(
     mut spawned: ResMut<TotalSpawned>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-    let texture_handle = asset_server.load("images/atlas.png");
+    let texture_handle = asset_server.load("images/mob_atlas.png");
     let texture_atlas =
         TextureAtlas::from_grid(texture_handle, Vec2::new(64.0, 64.0), 6, 1, None, None);
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
