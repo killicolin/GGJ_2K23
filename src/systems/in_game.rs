@@ -276,8 +276,12 @@ pub fn camera_position_update(
 ) {
     let player_transform = query.single();
     query_camera.for_each_mut(|mut camera_transform| {
-        let pos = (player_transform.translation).truncate();
-        camera_transform.translation = Vec3::new(pos.x, pos.y, 999.0);
+        let offset =
+            ((player_transform.translation).truncate() - camera_transform.translation.truncate());
+        let direction = offset.normalize_or_zero();
+        let magnitude = offset.distance(Vec2::ZERO);
+        let result = direction * 0.9 * magnitude;
+        camera_transform.translation += Vec3::new(result.x, result.y, 0.0);
     });
 }
 
