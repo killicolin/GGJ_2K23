@@ -17,8 +17,9 @@ use rand::{thread_rng, Rng};
 
 use crate::{
     components::{
-        Aim, Alive, AnimationTimer, Bullet, BulletBundle, CharacterBundle, Collider, Decay, Enemy,
-        EnemyBundle, Harm, HitCount, InGame, MobSpawnerTimer, Move, Player, PlayerBundle, Weapon,
+        Aim, Alive, AnimationTimer, Bullet, BulletBundle, CharacterBundle, Chunk, Collider, Decay,
+        Enemy, EnemyBundle, Harm, HitCount, InGame, MobSpawnerTimer, Move, Player, PlayerBundle,
+        Weapon,
     },
     constants::{
         BULLETS_COLOR, BULLETS_DECAYS, BULLETS_SCALE, BULLETS_SPREAD, BULLET_HEALTH, BULLET_TTL,
@@ -77,14 +78,19 @@ pub fn setup_in_game(
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     score: Res<Score>,
-
     audio: Res<Audio>,
     mut create_map_event: EventWriter<CreateMapEvent>,
+    query_chunks: Query<Entity, With<Chunk>>,
+    mut chunk_map_resource: ResMut<ChunksMap>,
 ) {
     if score.should_start_music() {
         let nb_music = score.historic_period_theme();
         let music = asset_server.load(format!("sounds/in_game_{nb_music}.ogg"));
         audio.play(music);
+        for chunk in query_chunks.iter() {
+            commands.entity(chunk).despawn();
+        }
+        chunk_map_resource.chunks.clear();
     }
     // Camera
     commands.spawn((Camera2dBundle::default(), InGame));
@@ -159,6 +165,7 @@ pub fn load_chunks(
     asset_server: Res<AssetServer>,
     mut chunk_map_resource: ResMut<ChunksMap>,
     query_camera: Query<(&Transform, &OrthographicProjection)>,
+    score: Res<Score>,
 ) {
     // Get camera chunk position
     let (camera_transform, ortho) = query_camera.iter().last().unwrap();
@@ -178,20 +185,26 @@ pub fn load_chunks(
                 Some(_chunk_type) => {}
                 None => {
                     // Load chunk
-                    commands.spawn(SpriteBundle {
-                        transform: Transform {
-                            translation: Vec3 {
-                                x: i as f32 * 256.0,
-                                y: j as f32 * 256.0,
-                                z: 0.0,
+                    commands.spawn((
+                        SpriteBundle {
+                            transform: Transform {
+                                translation: Vec3 {
+                                    x: i as f32 * 256.0,
+                                    y: j as f32 * 256.0,
+                                    z: 0.0,
+                                },
+                                scale: MAP_SCALE,
+                                ..default()
                             },
-                            scale: MAP_SCALE,
+                            sprite: Sprite { ..default() },
+                            texture: asset_server.load(format!(
+                                "images/map_chunk_{}.png",
+                                score.historic_period_theme()
+                            )),
                             ..default()
                         },
-                        sprite: Sprite { ..default() },
-                        texture: asset_server.load("images/map_chunk_0.png"),
-                        ..default()
-                    });
+                        Chunk,
+                    ));
                     chunk_map_resource.chunks.insert((i, j), ChunkType::Basic);
                 }
             }
@@ -206,6 +219,7 @@ pub fn make_map(
     asset_server: Res<AssetServer>,
     query_camera: Query<(&Transform, &OrthographicProjection)>,
     create_map_event: EventReader<CreateMapEvent>,
+    score: Res<Score>,
 ) {
     if create_map_event.is_empty() {
         return;
@@ -222,23 +236,31 @@ pub fn make_map(
     let n_chunks_to_make_horizontal = (orth.right / 256.0) as i32 + 2;
     let n_chunks_to_make_vertical = (orth.top / 256.0) as i32 + 2;
 
-    let texture = asset_server.load("images/map_chunk.png");
+    let texture = asset_server.load(format!(
+        "images/map_chunk_{}.png",
+        score.historic_period_theme()
+    ));
     let chunks = (-2..n_chunks_to_make_horizontal)
         .map(move |i| {
             let texture = texture.clone();
-            (-2..n_chunks_to_make_vertical).map(move |j| SpriteBundle {
-                transform: Transform {
-                    translation: Vec3 {
-                        x: i as f32 * 256.0,
-                        y: j as f32 * 256.0,
-                        z: 0.0,
+            (-2..n_chunks_to_make_vertical).map(move |j| {
+                (
+                    SpriteBundle {
+                        transform: Transform {
+                            translation: Vec3 {
+                                x: i as f32 * 256.0,
+                                y: j as f32 * 256.0,
+                                z: 0.0,
+                            },
+                            scale: PLAYER_SCALE,
+                            ..default()
+                        },
+                        sprite: Sprite { ..default() },
+                        texture: texture.clone(),
+                        ..default()
                     },
-                    scale: PLAYER_SCALE,
-                    ..default()
-                },
-                sprite: Sprite { ..default() },
-                texture: texture.clone(),
-                ..default()
+                    Chunk,
+                )
             })
         })
         .flatten();
@@ -275,7 +297,7 @@ pub fn camera_position_update(
     let player_transform = query.single();
     query_camera.for_each_mut(|mut camera_transform| {
         let offset =
-            ((player_transform.translation).truncate() - camera_transform.translation.truncate());
+            (player_transform.translation).truncate() - camera_transform.translation.truncate();
         let direction = offset.normalize_or_zero();
         let magnitude = offset.distance(Vec2::ZERO);
         let result = direction * magnitude * 5.5 * time.delta_seconds();

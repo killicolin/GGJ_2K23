@@ -228,3 +228,7 @@ impl Display for DebufChoices {
 
 #[derive(Component, Deref, DerefMut)]
 pub struct AnimationTimer(pub Timer);
+
+#[derive(Component, Default, Reflect)]
+#[reflect(Component)]
+pub struct Chunk;

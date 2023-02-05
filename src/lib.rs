@@ -73,7 +73,7 @@ pub fn run(width: f32, height: f32) {
     let mut app = App::new();
     app.add_plugins(DefaultPlugins.set(WindowPlugin {
         window: WindowDescriptor {
-            title: "GAME NAME".to_string(),
+            title: "BACK TO THE ROOTS".to_string(),
             width,
             height,
             present_mode: PresentMode::AutoVsync,
