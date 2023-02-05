@@ -1,5 +1,7 @@
 use crate::components::PreStartMenu;
 use crate::{constants::LORE_INTRO, AppState};
+use bevy::prelude::ImageBundle;
+use bevy::ui::{PositionType, UiImage, UiRect};
 use bevy::{
     prelude::{
         AssetServer, BuildChildren, Button, ButtonBundle, Camera2dBundle, Changed, Children, Color,
@@ -33,12 +35,30 @@ pub fn setup_pre_start_menu(mut commands: Commands, asset_server: Res<AssetServe
             PreStartMenu,
         ))
         .with_children(|parent| {
+            parent.spawn((
+                ImageBundle {
+                    style: Style {
+                        size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::Center,
+                        position_type: PositionType::Absolute,
+                        ..default()
+                    },
+                    image: UiImage(asset_server.load("images/title_screen.png")),
+                    ..default()
+                },
+                PreStartMenu,
+            ));
             parent
                 .spawn((
                     NodeBundle {
                         style: Style {
-                            size: Size::new(Val::Percent(80.0), Val::Percent(80.0)),
+                            size: Size::new(Val::Percent(50.0), Val::Percent(40.0)),
                             align_items: AlignItems::Center,
+                            margin: UiRect {
+                                top: Val::Percent(10.0),
+                                ..default()
+                            },
                             justify_content: JustifyContent::SpaceAround,
                             flex_direction: FlexDirection::Column,
                             ..default()
@@ -54,7 +74,7 @@ pub fn setup_pre_start_menu(mut commands: Commands, asset_server: Res<AssetServe
                             LORE_INTRO,
                             TextStyle {
                                 font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                                font_size: 28.0,
+                                font_size: 18.0,
                                 color: Color::rgb(0.9, 0.9, 0.9),
                             },
                         ),
@@ -82,7 +102,7 @@ pub fn setup_pre_start_menu(mut commands: Commands, asset_server: Res<AssetServe
                                     "KILL THEM",
                                     TextStyle {
                                         font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                                        font_size: 40.0,
+                                        font_size: 32.0,
                                         color: NORMAL_BUTTON,
                                     },
                                 ),
