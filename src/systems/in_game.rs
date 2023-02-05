@@ -1,5 +1,3 @@
-use std::cmp::{max, min};
-
 use bevy::{
     prelude::{
         AssetServer, Assets, Camera2dBundle, Color, Commands, Entity, EventReader, EventWriter,
