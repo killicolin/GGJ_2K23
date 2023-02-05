@@ -268,6 +268,7 @@ pub fn player_aim_update(
 }
 
 pub fn camera_position_update(
+    time: Res<Time>,
     mut query_camera: Query<&mut Transform, With<OrthographicProjection>>,
     query: Query<&Transform, (With<Player>, Without<OrthographicProjection>)>,
 ) {
@@ -277,7 +278,7 @@ pub fn camera_position_update(
             ((player_transform.translation).truncate() - camera_transform.translation.truncate());
         let direction = offset.normalize_or_zero();
         let magnitude = offset.distance(Vec2::ZERO);
-        let result = direction * 0.9 * magnitude;
+        let result = direction * magnitude * 5.5 * time.delta_seconds();
         camera_transform.translation += Vec3::new(result.x, result.y, 0.0);
     });
 }
