@@ -86,7 +86,7 @@ pub fn setup_in_game(
     if score.should_start_music() {
         let nb_music = score.historic_period_theme();
         let music = asset_server.load(format!("sounds/in_game_{nb_music}.ogg"));
-        audio.play(music);
+        audio.play(music).looped();
         for chunk in query_chunks.iter() {
             commands.entity(chunk).despawn();
         }
@@ -634,6 +634,8 @@ pub fn bullet_hitting_update(
         (&Transform, &mut Alive, &mut TextureAtlasSprite),
         (With<Enemy>, Without<Bullet>),
     >,
+    asset_server: Res<AssetServer>,
+    audio: Res<Audio>,
 ) {
     query_bullets.for_each_mut(|(bullet_transform, bullet_harm, mut hit_count)| {
         query_enemy.for_each_mut(|(enemy_transform, mut enemy_alive, mut sprite)| {
@@ -647,6 +649,7 @@ pub fn bullet_hitting_update(
                 enemy_transform.translation,
                 enemy_transform.scale.truncate() * 32.0,
             ) {
+                audio.play(asset_server.load("sounds/hit.ogg"));
                 enemy_alive.health -= bullet_harm.damage;
                 sprite.color =
                     lerp_color(MOB_COLOR_HURT, MOB_COLOR, enemy_alive.health / MOB_HEALTH);

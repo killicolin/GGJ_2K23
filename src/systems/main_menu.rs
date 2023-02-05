@@ -20,7 +20,7 @@ const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
 
 pub fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>, audio: Res<Audio>) {
     let music = asset_server.load("sounds/theme.ogg");
-    audio.play(music);
+    audio.play(music).looped();
 
     commands.spawn((Camera2dBundle::default(), MainMenu));
     commands.spawn((
