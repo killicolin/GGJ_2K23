@@ -93,10 +93,6 @@ impl Score {
     pub fn should_start_music(&self) -> bool {
         self.level == 0 || self.level == 2 || self.level == 5
     }
-
-    pub fn should_stop_music(&self) -> bool {
-        self.level == 1 || self.level == 3
-    }
 }
 
 impl Default for Score {
