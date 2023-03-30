@@ -3,7 +3,8 @@ use std::cmp::max;
 use bevy::{
     prelude::{
         AssetServer, BuildChildren, Button, ButtonBundle, Camera2dBundle, Changed, ChildBuilder,
-        Children, Color, Commands, Entity, NodeBundle, Query, Res, ResMut, State, TextBundle, With,
+        Children, Color, Commands, Entity, NextState, NodeBundle, Query, Res, ResMut, TextBundle,
+        With,
     },
     text::{Text, TextStyle},
     time::Time,
@@ -105,7 +106,7 @@ fn heredity_sprite_layout(asset_server: &Res<AssetServer>, parent: &mut ChildBui
                 align_items: AlignItems::Center,
                 ..default()
             },
-            image: UiImage(asset_server.load("images/sprite.png")),
+            image: UiImage::new(asset_server.load("images/sprite.png")),
             background_color: BackgroundColor(color.clone()),
             ..default()
         },
@@ -354,7 +355,7 @@ pub fn decrement_date(
 }
 
 pub fn heredity_button(
-    mut app_state: ResMut<State<AppState>>,
+    mut app_state: ResMut<NextState<AppState>>,
     mut stats: ResMut<StatsRes>,
     mut interaction_query: Query<
         (
@@ -389,7 +390,7 @@ pub fn heredity_button(
                         DebufChoices::FireRate => stats.player_fire_rate *= 1.3,
                     });
                 stats.player_color = color.0;
-                app_state.set(AppState::InGame).unwrap();
+                app_state.set(AppState::InGame);
                 *button_color = NORMAL_BUTTON.into()
             }
             Interaction::Hovered => *button_color = HOVER_BUTTON.into(),

@@ -4,8 +4,11 @@ mod resource;
 mod systems;
 
 use bevy::{
-    prelude::{default, App, Color, PluginGroup, Resource, SystemSet},
-    window::{PresentMode, WindowDescriptor, WindowPlugin},
+    prelude::{
+        default, App, Color, IntoSystemAppConfig, IntoSystemConfig, IntoSystemConfigs, OnEnter,
+        OnExit, OnUpdate, PluginGroup, Resource, States,
+    },
+    window::{PresentMode, Window, WindowPlugin, WindowResolution},
     DefaultPlugins,
 };
 use bevy_editor_pls::EditorPlugin;
@@ -34,8 +37,9 @@ use systems::{
     retry_menu::{clean_retry_menu, retry_button, setup_retry_menu},
 };
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default)]
 pub enum AppState {
+    #[default]
     MainMenu,
     InGame,
     Paused,
@@ -74,13 +78,12 @@ impl Default for StatsRes {
 pub fn run(width: f32, height: f32) {
     let mut app = App::new();
     app.add_plugins(DefaultPlugins.set(WindowPlugin {
-        window: WindowDescriptor {
+        primary_window: Some(Window {
             title: "BACK TO THE ROOTS".to_string(),
-            width,
-            height,
+            resolution: WindowResolution::new(width, height),
             present_mode: PresentMode::AutoVsync,
             ..default()
-        },
+        }),
         ..default()
     }))
     .add_plugin(AudioPlugin)
@@ -98,53 +101,61 @@ pub fn run(width: f32, height: f32) {
     .add_event::<WaveDoneEvent>()
     .add_event::<CreateMapEvent>()
     // To change to AppState::MainMenu when loop is finished
-    .add_state(AppState::MainMenu)
+    .add_state::<AppState>()
     .init_resource::<StatsRes>()
-    .add_system_set(SystemSet::on_enter(AppState::MainMenu).with_system(setup_main_menu))
-    .add_system_set(SystemSet::on_update(AppState::MainMenu).with_system(start_button))
-    .add_system_set(SystemSet::on_exit(AppState::MainMenu).with_system(clean_main_menu))
-    .add_system_set(SystemSet::on_enter(AppState::PreStartMenu).with_system(setup_pre_start_menu))
-    .add_system_set(SystemSet::on_update(AppState::PreStartMenu).with_system(ingame_button))
-    .add_system_set(SystemSet::on_exit(AppState::PreStartMenu).with_system(clean_pre_start_menu))
-    .add_system_set(SystemSet::on_enter(AppState::RetryMenu).with_system(setup_retry_menu))
-    .add_system_set(SystemSet::on_update(AppState::RetryMenu).with_system(retry_button))
-    .add_system_set(SystemSet::on_exit(AppState::RetryMenu).with_system(clean_retry_menu))
-    .add_system_set(SystemSet::on_enter(AppState::LevelMenu).with_system(setup_level_menu))
-    .add_system_set(
-        SystemSet::on_update(AppState::LevelMenu)
-            .with_system(heredity_button)
-            .with_system(down_pannel)
-            .with_system(decrement_date),
+    //
+    .add_system(setup_main_menu.in_schedule(OnEnter(AppState::MainMenu)))
+    .add_system(start_button.in_set(OnUpdate(AppState::MainMenu)))
+    .add_system(clean_main_menu.in_schedule(OnExit(AppState::MainMenu)))
+    //
+    .add_system(setup_pre_start_menu.in_schedule(OnEnter(AppState::PreStartMenu)))
+    .add_system(ingame_button.in_set(OnUpdate(AppState::PreStartMenu)))
+    .add_system(clean_pre_start_menu.in_schedule(OnExit(AppState::PreStartMenu)))
+    //
+    .add_system(setup_retry_menu.in_schedule(OnEnter(AppState::RetryMenu)))
+    .add_system(retry_button.in_set(OnUpdate(AppState::RetryMenu)))
+    .add_system(clean_retry_menu.in_schedule(OnExit(AppState::RetryMenu)))
+    //
+    .add_system(setup_level_menu.in_schedule(OnEnter(AppState::LevelMenu)))
+    .add_systems(
+        (heredity_button, down_pannel, decrement_date).in_set(OnUpdate(AppState::LevelMenu)),
     )
-    .add_system_set(SystemSet::on_exit(AppState::LevelMenu).with_system(clean_level_menu))
-    .add_system_set(
-        SystemSet::on_enter(AppState::InGame).with_system(setup_in_game), // .with_system(make_map),
+    .add_system(clean_level_menu.in_schedule(OnExit(AppState::LevelMenu)))
+    //
+    .add_system(setup_in_game.in_schedule(OnEnter(AppState::InGame)))
+    .add_systems(
+        (
+            player_aim_update,
+            camera_position_update,
+            make_map,
+            load_chunks,
+            mouse_button_input_update,
+            key_input_update,
+            transform_update,
+            firing_bullet_emit,
+            bullet_spawner,
+            manage_mob_spawner_timer,
+            enemy_direction_update,
+            mob_spawner,
+            despawn_health,
+            despawn_ttl,
+            decay,
+        )
+            .in_set(OnUpdate(AppState::InGame)),
     )
-    .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(clean_in_game))
-    .add_system_set(
-        SystemSet::on_update(AppState::InGame)
-            .with_system(player_aim_update)
-            .with_system(camera_position_update)
-            .with_system(make_map)
-            .with_system(load_chunks)
-            .with_system(mouse_button_input_update)
-            .with_system(key_input_update)
-            .with_system(transform_update)
-            .with_system(firing_bullet_emit)
-            .with_system(bullet_spawner)
-            .with_system(manage_mob_spawner_timer)
-            .with_system(enemy_direction_update)
-            .with_system(mob_spawner)
-            .with_system(despawn_health)
-            .with_system(despawn_ttl)
-            .with_system(decay)
-            .with_system(bullet_hitting_update)
-            .with_system(enemy_hitting_update)
-            .with_system(wave_is_done_emit)
-            .with_system(change_level)
-            .with_system(animate_sprite)
-            .with_system(game_over),
-    );
+    .add_systems(
+        (
+            bullet_hitting_update,
+            enemy_hitting_update,
+            wave_is_done_emit,
+            change_level,
+            animate_sprite,
+            game_over,
+        )
+            .in_set(OnUpdate(AppState::InGame)),
+    )
+    .add_system(clean_in_game.in_schedule(OnExit(AppState::InGame)));
+    //
 
     app.register_type::<Alive>();
     app.register_type::<Move>();

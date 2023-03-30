@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
         AssetServer, BuildChildren, Button, ButtonBundle, Camera2dBundle, Changed, Children, Color,
-        Commands, Entity, ImageBundle, NodeBundle, Query, Res, ResMut, State, TextBundle, With,
+        Commands, Entity, ImageBundle, NextState, NodeBundle, Query, Res, ResMut, TextBundle, With,
     },
     text::TextStyle,
     ui::{
@@ -32,7 +32,7 @@ pub fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>, a
                 position_type: PositionType::Absolute,
                 ..default()
             },
-            image: UiImage(asset_server.load("images/titel_screen.png")),
+            image: UiImage::new(asset_server.load("images/title_screen.png")),
             ..default()
         },
         MainMenu,
@@ -60,7 +60,7 @@ pub fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>, a
                         position_type: PositionType::Absolute,
                         ..default()
                     },
-                    image: UiImage(asset_server.load("images/title_screen.png")),
+                    image: UiImage::new(asset_server.load("images/title_screen.png")),
                     ..default()
                 },
                 MainMenu,
@@ -104,7 +104,7 @@ pub fn clean_main_menu(mut commands: Commands, main_menu_query: Query<Entity, Wi
 }
 
 pub fn start_button(
-    mut app_state: ResMut<State<AppState>>,
+    mut app_state: ResMut<NextState<AppState>>,
     mut interaction_query: Query<
         (&Interaction, &mut BackgroundColor, &Children),
         (Changed<Interaction>, With<Button>),
@@ -113,7 +113,7 @@ pub fn start_button(
     for (interaction, _, _) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
-                app_state.set(AppState::PreStartMenu).unwrap();
+                app_state.set(AppState::PreStartMenu);
             }
             _ => {}
         }

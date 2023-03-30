@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
         AssetServer, Assets, Camera2dBundle, Color, Commands, Entity, EventReader, EventWriter,
-        Handle, Input, KeyCode, MouseButton, OrthographicProjection, Query, Res, ResMut, State,
+        Handle, Input, KeyCode, MouseButton, NextState, OrthographicProjection, Query, Res, ResMut,
         Transform, Vec2, Vec3, Vec4, With, Without,
     },
     sprite::{
@@ -10,7 +10,7 @@ use bevy::{
     },
     time::{Time, Timer, TimerMode},
     utils::default,
-    window::Windows,
+    window::Window,
 };
 use bevy_kira_audio::prelude::*;
 use rand::{thread_rng, Rng};
@@ -171,11 +171,10 @@ pub fn load_chunks(
     let (camera_transform, ortho) = query_camera.iter().last().unwrap();
     let x = camera_transform.translation.x;
     let y = camera_transform.translation.y;
-
-    let chunk_min_x = ((x + ortho.left) / 256.0).floor() as i32;
-    let chunk_max_x = ((x + ortho.right) / 256.0).floor() as i32;
-    let chunk_min_y = ((y + ortho.bottom) / 256.0).floor() as i32;
-    let chunk_max_y = ((y + ortho.top) / 256.0).floor() as i32;
+    let chunk_min_x = ((x + ortho.area.min.x) / 256.0).floor() as i32;
+    let chunk_max_x = ((x + ortho.area.max.x) / 256.0).floor() as i32;
+    let chunk_min_y = ((y + ortho.area.min.y) / 256.0).floor() as i32;
+    let chunk_max_y = ((y + ortho.area.max.y) / 256.0).floor() as i32;
     // Check every chunk around the camera
     (chunk_min_x - 2..chunk_max_x + 2).for_each(|i| {
         (chunk_min_y - 2..chunk_max_y + 2).for_each(|j| {
@@ -218,7 +217,7 @@ pub fn make_map(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     query_camera: Query<(&Transform, &OrthographicProjection)>,
-    create_map_event: EventReader<CreateMapEvent>,
+    mut create_map_event: EventReader<CreateMapEvent>,
     score: Res<Score>,
 ) {
     if create_map_event.is_empty() {
@@ -233,8 +232,8 @@ pub fn make_map(
     let chunk_x = (x / 256.0).floor();
     let chunk_y = (y / 256.0).floor();
 
-    let n_chunks_to_make_horizontal = (orth.right / 256.0) as i32 + 2;
-    let n_chunks_to_make_vertical = (orth.top / 256.0) as i32 + 2;
+    let n_chunks_to_make_horizontal = (orth.area.max.x / 256.0) as i32 + 2;
+    let n_chunks_to_make_vertical = (orth.area.max.y / 256.0) as i32 + 2;
 
     let texture = asset_server.load(format!(
         "images/map_chunk_{}.png",
@@ -271,18 +270,18 @@ pub fn make_map(
 
 //todo, fix the player direction
 pub fn player_aim_update(
-    windows: Res<Windows>,
+    windows: Query<&Window>,
     mut query: Query<(&Transform, &mut Aim), With<Player>>,
     query_camera: Query<(&Transform, &OrthographicProjection)>,
 ) {
-    let window = windows.get_primary().unwrap();
+    let window = windows.single();
     let (player_transform, mut player_aim) = query.single_mut();
     let (transform, projection) = query_camera.iter().last().unwrap();
     if let Some(position) = window.cursor_position() {
         player_aim.direction = Vec2::new(
-            (position.x + transform.translation.x + projection.left)
+            (position.x + transform.translation.x + projection.area.min.x)
                 - player_transform.translation.x,
-            (position.y + transform.translation.y + projection.bottom)
+            (position.y + transform.translation.y + projection.area.min.y)
                 - player_transform.translation.y,
         )
         .normalize_or_zero()
@@ -456,7 +455,7 @@ pub fn manage_mob_spawner_timer(
 pub fn mob_spawner(
     mut commands: Commands,
     query: Query<&Transform, With<Player>>,
-    mob_spawn_event: EventReader<MobSpawnEvent>,
+    mut mob_spawn_event: EventReader<MobSpawnEvent>,
     asset_server: Res<AssetServer>,
     to_spawn: Res<TotalToSpawn>,
     mut spawned: ResMut<TotalSpawned>,
@@ -565,9 +564,9 @@ pub fn wave_is_done_emit(
 }
 
 pub fn change_level(
-    mut app_state: ResMut<State<AppState>>,
+    mut app_state: ResMut<NextState<AppState>>,
     mut score: ResMut<Score>,
-    wave_done_event: EventReader<WaveDoneEvent>,
+    mut wave_done_event: EventReader<WaveDoneEvent>,
     mut total_spawned: ResMut<TotalSpawned>,
     mut total_to_spawn: ResMut<TotalToSpawn>,
     mut total_killed: ResMut<TotalKilled>,
@@ -581,17 +580,17 @@ pub fn change_level(
         total_killed.amount = 0;
         total_spawned.amount = 0;
         total_to_spawn.update_paramter_for_level_id(score.get_level_index());
-        app_state.set(AppState::LevelMenu).unwrap();
+        app_state.set(AppState::LevelMenu);
     }
 }
 
 pub fn game_over(
-    mut app_state: ResMut<State<AppState>>,
-    game_over_event_emitter: EventReader<GameOverEvent>,
+    mut app_state: ResMut<NextState<AppState>>,
+    mut game_over_event_emitter: EventReader<GameOverEvent>,
 ) {
     if !game_over_event_emitter.is_empty() {
         game_over_event_emitter.clear();
-        app_state.set(AppState::RetryMenu).unwrap();
+        app_state.set(AppState::RetryMenu);
     }
 }
 

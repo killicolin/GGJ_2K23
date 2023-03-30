@@ -1,11 +1,11 @@
 use crate::components::PreStartMenu;
 use crate::{constants::LORE_INTRO, AppState};
-use bevy::prelude::ImageBundle;
+use bevy::prelude::{ImageBundle, NextState};
 use bevy::ui::{PositionType, UiImage, UiRect};
 use bevy::{
     prelude::{
         AssetServer, BuildChildren, Button, ButtonBundle, Camera2dBundle, Changed, Children, Color,
-        Commands, Entity, NodeBundle, Query, Res, ResMut, State, TextBundle, With,
+        Commands, Entity, NodeBundle, Query, Res, ResMut, TextBundle, With,
     },
     text::TextStyle,
     ui::{
@@ -44,7 +44,7 @@ pub fn setup_pre_start_menu(mut commands: Commands, asset_server: Res<AssetServe
                         position_type: PositionType::Absolute,
                         ..default()
                     },
-                    image: UiImage(asset_server.load("images/title_screen.png")),
+                    image: UiImage::new(asset_server.load("images/title_screen.png")),
                     ..default()
                 },
                 PreStartMenu,
@@ -125,7 +125,7 @@ pub fn clean_pre_start_menu(
 }
 
 pub fn ingame_button(
-    mut app_state: ResMut<State<AppState>>,
+    mut app_state: ResMut<NextState<AppState>>,
     mut interaction_query: Query<
         (&Interaction, &mut BackgroundColor, &Children),
         (Changed<Interaction>, With<Button>),
@@ -134,7 +134,7 @@ pub fn ingame_button(
     for (interaction, _, _) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
-                app_state.set(AppState::InGame).unwrap();
+                app_state.set(AppState::InGame);
             }
             _ => {}
         }

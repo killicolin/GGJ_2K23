@@ -1,7 +1,7 @@
 use bevy::{
     prelude::{
         AssetServer, BuildChildren, Button, ButtonBundle, Camera2dBundle, Changed, Children, Color,
-        Commands, Entity, NodeBundle, Query, Res, ResMut, State, TextBundle, With,
+        Commands, Entity, NextState, NodeBundle, Query, Res, ResMut, TextBundle, With,
     },
     text::TextStyle,
     ui::{
@@ -119,7 +119,7 @@ pub fn clean_retry_menu(
 }
 
 pub fn retry_button(
-    mut app_state: ResMut<State<AppState>>,
+    mut app_state: ResMut<NextState<AppState>>,
     mut interaction_query: Query<
         (&Interaction, &mut BackgroundColor, &Children),
         (Changed<Interaction>, With<Button>),
@@ -128,7 +128,7 @@ pub fn retry_button(
     for (interaction, _, _) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
-                app_state.set(AppState::InGame).unwrap();
+                app_state.set(AppState::InGame);
             }
             _ => {}
         }
