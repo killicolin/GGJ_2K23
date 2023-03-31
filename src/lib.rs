@@ -1,13 +1,11 @@
 mod components;
 mod constants;
+mod plugins;
 mod resource;
 mod systems;
 
 use bevy::{
-    prelude::{
-        default, App, Color, IntoSystemAppConfig, IntoSystemConfig, IntoSystemConfigs, OnEnter,
-        OnExit, OnUpdate, PluginGroup, Resource, States,
-    },
+    prelude::{default, App, Color, PluginGroup, Resource, States},
     window::{PresentMode, Window, WindowPlugin, WindowResolution},
     DefaultPlugins,
 };
@@ -20,21 +18,12 @@ use constants::{
 };
 use resource::{ChunksMap, LastShot, Score, TotalKilled, TotalSpawned, TotalToSpawn};
 use std::collections::HashMap;
-use systems::{
-    in_game::{
-        animate_sprite, bullet_hitting_update, bullet_spawner, camera_position_update,
-        change_level, clean_in_game, decay, despawn_health, despawn_ttl, enemy_direction_update,
-        enemy_hitting_update, firing_bullet_emit, game_over, key_input_update, load_chunks,
-        make_map, manage_mob_spawner_timer, mob_spawner, mouse_button_input_update,
-        player_aim_update, setup_in_game, transform_update, wave_is_done_emit, CreateMapEvent,
-        GameOverEvent, MobSpawnEvent, SpawnBulletEvent, WaveDoneEvent,
-    },
-    level_menu::{
-        clean_level_menu, decrement_date, down_pannel, heredity_button, setup_level_menu,
-    },
-    main_menu::{clean_main_menu, setup_main_menu, start_button},
-    prestart_menu::{clean_pre_start_menu, ingame_button, setup_pre_start_menu},
-    retry_menu::{clean_retry_menu, retry_button, setup_retry_menu},
+use systems::in_game::{
+    CreateMapEvent, GameOverEvent, MobSpawnEvent, SpawnBulletEvent, WaveDoneEvent,
+};
+
+use plugins::{
+    game_loop::GameLoopPlugin, game_ui_plugin::GameUIPlugin, launcher_ui_plugin::LauncherUiPlugin,
 };
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default)]
@@ -104,57 +93,10 @@ pub fn run(width: f32, height: f32) {
     .add_state::<AppState>()
     .init_resource::<StatsRes>()
     //
-    .add_system(setup_main_menu.in_schedule(OnEnter(AppState::MainMenu)))
-    .add_system(start_button.in_set(OnUpdate(AppState::MainMenu)))
-    .add_system(clean_main_menu.in_schedule(OnExit(AppState::MainMenu)))
-    //
-    .add_system(setup_pre_start_menu.in_schedule(OnEnter(AppState::PreStartMenu)))
-    .add_system(ingame_button.in_set(OnUpdate(AppState::PreStartMenu)))
-    .add_system(clean_pre_start_menu.in_schedule(OnExit(AppState::PreStartMenu)))
-    //
-    .add_system(setup_retry_menu.in_schedule(OnEnter(AppState::RetryMenu)))
-    .add_system(retry_button.in_set(OnUpdate(AppState::RetryMenu)))
-    .add_system(clean_retry_menu.in_schedule(OnExit(AppState::RetryMenu)))
-    //
-    .add_system(setup_level_menu.in_schedule(OnEnter(AppState::LevelMenu)))
-    .add_systems(
-        (heredity_button, down_pannel, decrement_date).in_set(OnUpdate(AppState::LevelMenu)),
-    )
-    .add_system(clean_level_menu.in_schedule(OnExit(AppState::LevelMenu)))
-    //
-    .add_system(setup_in_game.in_schedule(OnEnter(AppState::InGame)))
-    .add_systems(
-        (
-            player_aim_update,
-            camera_position_update,
-            make_map,
-            load_chunks,
-            mouse_button_input_update,
-            key_input_update,
-            transform_update,
-            firing_bullet_emit,
-            bullet_spawner,
-            manage_mob_spawner_timer,
-            enemy_direction_update,
-            mob_spawner,
-            despawn_health,
-            despawn_ttl,
-            decay,
-        )
-            .in_set(OnUpdate(AppState::InGame)),
-    )
-    .add_systems(
-        (
-            bullet_hitting_update,
-            enemy_hitting_update,
-            wave_is_done_emit,
-            change_level,
-            animate_sprite,
-            game_over,
-        )
-            .in_set(OnUpdate(AppState::InGame)),
-    )
-    .add_system(clean_in_game.in_schedule(OnExit(AppState::InGame)));
+    .add_plugin(LauncherUiPlugin)
+    .add_plugin(GameUIPlugin)
+    .add_plugin(GameLoopPlugin);
+
     //
 
     app.register_type::<Alive>();
